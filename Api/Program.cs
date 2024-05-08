@@ -1,4 +1,5 @@
 using Infrastructure;
+using MQTTClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddNpgsqlDataSource(Utilities.ProperlyFormattedConnectionString,
     dataSourceBuilder => dataSourceBuilder.EnableParameterLogging());
+var mqttClient = new MQTTClientManager();
+mqttClient.ConnectAsync();
+
 
 var app = builder.Build();
 
@@ -20,5 +24,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+//this is onlty to test the broker
+mqttClient.PublishAsync("cam/control", "start");
 app.Run();
