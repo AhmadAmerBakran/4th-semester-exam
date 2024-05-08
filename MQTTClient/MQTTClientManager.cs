@@ -48,6 +48,18 @@ namespace MQTTClient
                 Console.WriteLine($"Failed to connect: {ex.Message}");
             }
         }
+        public async Task DisconnectAsync()
+        {
+            try
+            {
+                await _client.DisconnectAsync();
+                Console.WriteLine("Disconnected from MQTT Broker.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to disconnect: {ex.Message}");
+            }
+        }
 
         public async Task PublishAsync(string topic, string message)
         {
