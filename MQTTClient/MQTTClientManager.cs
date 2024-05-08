@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Authentication;
+using System.Text;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Formatter;
@@ -20,21 +21,21 @@ namespace MQTTClient
 
         public async Task ConnectAsync()
         {
-            /*var tlsOptions = new MqttClientOptionsBuilderTlsParameters
+            var tlsOptions = new MqttClientOptionsBuilderTlsParameters
             {
                 UseTls = true,
                 AllowUntrustedCertificates = true,
                 IgnoreCertificateChainErrors = true,
                 IgnoreCertificateRevocationErrors = true,
                 SslProtocol = SslProtocols.Tls12
-            };*/
+            };
 
             var mqttClientOptions = new MqttClientOptionsBuilder()
                 .WithClientId(MQTTConfig.ClientId)
                 .WithTcpServer(MQTTConfig.Server, MQTTConfig.Port)
                 .WithCredentials(MQTTConfig.Username, MQTTConfig.Password)
                 .WithCleanSession()
-                //.WithTls()
+                .WithTls(tlsOptions)
                 .WithProtocolVersion(MqttProtocolVersion.V500)
                 .Build();
 

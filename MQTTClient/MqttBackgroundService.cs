@@ -21,6 +21,8 @@ namespace MQTTClient
                 await _mqttClient.ConnectAsync();
                 await _mqttClient.SubscribeAsync("cam/control");
                 await _mqttClient.PublishAsync("cam/control", "start");
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                await _mqttClient.PublishAsync("cam/control", "stop");
             }
             catch (Exception ex)
             {
