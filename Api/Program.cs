@@ -1,4 +1,5 @@
 using Infrastructure;
+using MQTTClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,10 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddNpgsqlDataSource(Utilities.ProperlyFormattedConnectionString,
     dataSourceBuilder => dataSourceBuilder.EnableParameterLogging());
+
+builder.Services.AddSingleton<MQTTClientManager>();
+builder.Services.AddHostedService<MqttBackgroundService>();
+
 
 var app = builder.Build();
 
