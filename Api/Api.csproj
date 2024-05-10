@@ -8,14 +8,15 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Fleck" Version="1.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.1"/>
         <PackageReference Include="Npgsql.DependencyInjection" Version="8.0.2" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
+        <PackageReference Include="uldahlalex.websocket.boilerplate" Version="1.6.0" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Service\Service.csproj" />
-      <ProjectReference Include="..\WebSocketServer\WebSocketServer.csproj" />
     </ItemGroup>
 
 </Project>
