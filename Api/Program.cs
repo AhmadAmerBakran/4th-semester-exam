@@ -1,29 +1,50 @@
+using System.Reflection;
+using Core.Interfaces;
+using Fleck;
 using Infrastructure;
 using MQTTClient;
+using Service;
+using Api.State;
+using lib;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddNpgsqlDataSource(Utilities.ProperlyFormattedConnectionString,
-    dataSourceBuilder => dataSourceBuilder.EnableParameterLogging());
-
-builder.Services.AddSingleton<MQTTClientManager>();
+builder.Services.AddNpgsqlDataSource(Utilities.ProperlyFormattedConnectionString, dataSourceBuilder => dataSourceBuilder.EnableParameterLogging());
+builder.Services.AddSingleton<IMQTTClientManager, MQTTClientManager>();
+builder.Services.AddSingleton<ICarControlService, CarControlService>();
 builder.Services.AddHostedService<MqttBackgroundService>();
 
+var clientEventHandlers = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+//var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
+var server = new WebSocketServer("ws://0.0.0.0:8181");
+server.Start(socket =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    socket.OnOpen = () => {
+        Console.WriteLine("Connection opened.");
+        WebSocketConnectionManager.AddSocket(socket);
+    };
+    socket.OnClose = () => {
+        Console.WriteLine("Connection closed.");
+        WebSocketConnectionManager.RemoveSocket(socket);
+    };
+    socket.OnMessage =  async message =>
+        {
+            try
+            {
+                await app.InvokeClientEventHandler(clientEventHandlers, socket, message);
 
-app.UseHttpsRedirection();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error processing command: {e.Message}");
+                socket.Send("Error processing your command.");
+            }
+        };
+});
 
 app.Run();
