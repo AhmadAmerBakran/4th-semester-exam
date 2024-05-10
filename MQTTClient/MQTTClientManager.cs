@@ -42,6 +42,11 @@ namespace MQTTClient
 
         public async Task ConnectAsync()
         {
+            if (_client.IsConnected)
+            {
+                Console.WriteLine("Already connected to MQTT Broker.");
+                return;
+            }
             var tlsOptions = new MqttClientOptionsBuilderTlsParameters
             {
                 UseTls = true,

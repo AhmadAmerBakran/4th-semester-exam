@@ -5,16 +5,16 @@ using lib;
 
 namespace Api.EventHandlers;
 
-public class CarControlHandler : BaseEventHandler<CarControlDto>
+public class ClientWantsToControlCar : BaseEventHandler<ClientWantsToControlCarDto>
 {
     private readonly ICarControlService _carControlService;
 
-    public CarControlHandler(ICarControlService carControlService)
+    public ClientWantsToControlCar(ICarControlService carControlService)
     {
         _carControlService = carControlService;
     }
 
-    public override async Task Handle(CarControlDto dto, IWebSocketConnection socket)
+    public override async Task Handle(ClientWantsToControlCarDto dto, IWebSocketConnection socket)
     {
         try
         {
@@ -25,6 +25,8 @@ public class CarControlHandler : BaseEventHandler<CarControlDto>
         catch (Exception ex)
         {
             socket.Send($"Failed to send command: {ex.Message}");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.InnerException);
         }
     }
 }

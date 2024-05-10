@@ -22,7 +22,6 @@
       <ProjectReference Include="..\Api\Api.csproj" />
       <ProjectReference Include="..\MQTTClient\MQTTClient.csproj" />
       <ProjectReference Include="..\Service\Service.csproj" />
-      <ProjectReference Include="..\WebSocketServer\WebSocketServer.csproj" />
     </ItemGroup>
 
 </Project>

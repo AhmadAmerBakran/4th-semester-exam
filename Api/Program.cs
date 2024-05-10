@@ -10,17 +10,15 @@ using lib;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddNpgsqlDataSource(Utilities.ProperlyFormattedConnectionString, dataSourceBuilder => dataSourceBuilder.EnableParameterLogging());
 builder.Services.AddSingleton<IMQTTClientManager, MQTTClientManager>();
+builder.Services.AddNpgsqlDataSource(Utilities.ProperlyFormattedConnectionString, dataSourceBuilder => dataSourceBuilder.EnableParameterLogging());
 builder.Services.AddSingleton<ICarControlService, CarControlService>();
-builder.Services.AddHostedService<MqttBackgroundService>();
+
 
 var clientEventHandlers = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
 
 var app = builder.Build();
 
-//var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
 var server = new WebSocketServer("ws://0.0.0.0:8181");
 server.Start(socket =>
 {

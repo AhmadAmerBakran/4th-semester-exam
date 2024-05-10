@@ -2,7 +2,7 @@
 
 namespace Api.Dtos;
 
-public class CarControlDto : BaseDto
+public class ClientWantsToControlCarDto : BaseDto
 {
     public string Topic { get; set; }
     public string Command { get; set; }
