@@ -9,7 +9,7 @@ public class CarControlService : ICarControlService
         public CarControlService(IMQTTClientManager mqttClientManager)
         {
             _mqttClientManager = mqttClientManager;
-            /*_mqttClientManager.MessageReceived += HandleReceivedMessage;*/
+            _mqttClientManager.MessageReceived += HandleReceivedMessage;
         }
 
         public void HandleReceivedMessage(string topic, string message)

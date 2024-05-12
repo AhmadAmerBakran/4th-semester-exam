@@ -1,23 +1,30 @@
-﻿using Fleck;
+﻿using api.State;
+using Fleck;
 
 namespace Api.State;
 
-public static class WebSocketConnectionManager
+public class WebSocketConnectionManager
 {
-    private static readonly List<IWebSocketConnection> Sockets = new List<IWebSocketConnection>();
+    private readonly Dictionary<Guid, WebSocketWithMetaData> _connections = new();
 
-    public static void AddSocket(IWebSocketConnection socket)
+    public void AddConnection(Guid id, IWebSocketConnection socket)
     {
-        Sockets.Add(socket);
+        _connections[id] = new WebSocketWithMetaData(socket);
     }
 
-    public static void RemoveSocket(IWebSocketConnection socket)
+    public void RemoveConnection(Guid id)
     {
-        Sockets.Remove(socket);
+        _connections.Remove(id);
     }
 
-    public static IEnumerable<IWebSocketConnection> GetAllSockets()
+    public WebSocketWithMetaData GetConnection(Guid id)
     {
-        return Sockets;
+        _connections.TryGetValue(id, out var metaData);
+        return metaData;
+    }
+
+    public IEnumerable<WebSocketWithMetaData> GetAllConnections()
+    {
+        return _connections.Values;
     }
 }

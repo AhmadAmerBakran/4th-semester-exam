@@ -1,4 +1,5 @@
 using System.Reflection;
+using api.State;
 using Core.Interfaces;
 using Fleck;
 using Infrastructure;
@@ -13,36 +14,46 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<IMQTTClientManager, MQTTClientManager>();
 builder.Services.AddNpgsqlDataSource(Utilities.ProperlyFormattedConnectionString, dataSourceBuilder => dataSourceBuilder.EnableParameterLogging());
 builder.Services.AddSingleton<ICarControlService, CarControlService>();
-
+builder.Services.AddSingleton<WebSocketConnectionManager>();
 
 var clientEventHandlers = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
 
 var app = builder.Build();
 
+var connectionManager = app.Services.GetRequiredService<WebSocketConnectionManager>();
+
 var server = new WebSocketServer("ws://0.0.0.0:8181");
 server.Start(socket =>
 {
-    socket.OnOpen = () => {
-        Console.WriteLine("Connection opened.");
-        WebSocketConnectionManager.AddSocket(socket);
+    socket.OnOpen = () =>
+    {
+        connectionManager.AddConnection(socket.ConnectionInfo.Id, socket);
     };
-    socket.OnClose = () => {
-        Console.WriteLine("Connection closed.");
-        WebSocketConnectionManager.RemoveSocket(socket);
-    };
-    socket.OnMessage =  async message =>
-        {
-            try
-            {
-                await app.InvokeClientEventHandler(clientEventHandlers, socket, message);
 
+    socket.OnClose = () =>
+    {
+        connectionManager.RemoveConnection(socket.ConnectionInfo.Id);
+    };
+    
+    socket.OnMessage = async message =>
+    {
+        try
+        {
+            var metaData = connectionManager.GetConnection(socket.ConnectionInfo.Id);
+            if (metaData != null)
+            { 
+                await app.InvokeClientEventHandler(clientEventHandlers, socket, message);
             }
-            catch (Exception e)
+            else
             {
+                socket.Send("No valid session found.");
+            }
+        }catch (Exception e)
+        {
                 Console.WriteLine($"Error processing command: {e.Message}");
                 socket.Send("Error processing your command.");
-            }
-        };
+        }
+    };
 });
 
 app.Run();
