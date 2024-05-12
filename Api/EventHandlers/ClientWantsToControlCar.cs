@@ -1,10 +1,12 @@
 ﻿using Api.Dtos;
+using Api.Filters;
 using Core.Interfaces;
 using Fleck;
 using lib;
 
 namespace Api.EventHandlers;
 
+[RequireAuthentication]
 public class ClientWantsToControlCar : BaseEventHandler<ClientWantsToControlCarDto>
 {
     private readonly ICarControlService _carControlService;
@@ -18,7 +20,6 @@ public class ClientWantsToControlCar : BaseEventHandler<ClientWantsToControlCarD
     {
         try
         {
-            // Use the service to send command to MQTT topic
             await _carControlService.CarControl(dto.Topic, dto.Command);
             socket.Send($"Command '{dto.Command}' sent to topic '{dto.Topic}'.");
         }

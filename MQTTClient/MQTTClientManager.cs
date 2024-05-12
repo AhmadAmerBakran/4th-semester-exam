@@ -9,36 +9,30 @@ using MQTTnet.Protocol;
 
 namespace MQTTClient
 {
-    public delegate void MqttMessageReceivedHandler(string topic, string message);
+public delegate void MqttMessageReceivedHandler(string topic, string message);
 
     public class MQTTClientManager : IMQTTClientManager
     {
         private IMqttClient _client;
         private MqttFactory _factory;
-        public event MqttMessageReceivedHandler MessageReceived;
+
+        public event Action<string, string> MessageReceived;
 
         public MQTTClientManager()
         {
             _factory = new MqttFactory();
             _client = _factory.CreateMqttClient();
             _client.ApplicationMessageReceivedAsync += HandleReceivedApplicationMessage;
-
         }
 
         private Task HandleReceivedApplicationMessage(MqttApplicationMessageReceivedEventArgs e)
         {
             var receivedMessage = Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
             Console.WriteLine($"Received message on {e.ApplicationMessage.Topic}: {receivedMessage}");
-            try
-            {
-                MessageReceived?.Invoke(e.ApplicationMessage.Topic, receivedMessage);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error handling MQTT message: {ex.Message}");
-            }
+            MessageReceived?.Invoke(e.ApplicationMessage.Topic, receivedMessage);
             return Task.CompletedTask;
         }
+
 
         public async Task ConnectAsync()
         {
