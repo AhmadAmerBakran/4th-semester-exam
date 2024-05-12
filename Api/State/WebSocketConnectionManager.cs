@@ -1,9 +1,7 @@
 ﻿using api.State;
-using Core.Interfaces;
 using Fleck;
 
 namespace Api.State;
-
 
 
 public class WebSocketConnectionManager : IWebSocketConnectionManager
@@ -28,8 +26,8 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
     {
         if (_connections.ContainsKey(id))
         {
-            _connections[id].Connection.Close();  // Ensure the WebSocket connection is closed
-            _connections.Remove(id);  // Remove the connection from the dictionary
+            _connections[id].Connection.Close();
+            _connections.Remove(id);
             Console.WriteLine($"Connection and associated metadata removed: {id}");
         }
         else

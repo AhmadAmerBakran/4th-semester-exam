@@ -2,7 +2,7 @@
 
 public interface IMQTTClientManager
 {
-    event Action<string, string> MessageReceived;  // Declare the event
+    event Action<string, string> MessageReceived;
 
     Task ConnectAsync();
     Task DisconnectAsync();
