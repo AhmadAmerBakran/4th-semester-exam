@@ -1,5 +1,6 @@
-﻿/*using System.Text.Json;
+﻿using System.Text.Json;
 using Api.Dtos;
+using Api.State;
 using Fleck;
 using lib;
 
@@ -7,21 +8,21 @@ namespace Api.Filters;
 
 public class RequireAuthenticationAttribute : BaseEventFilter
 {
+    
     public override Task Handle<T>(IWebSocketConnection socket, T dto)
     {
-        // Retrieve the IConnectionManager from the ServiceLocator (or directly if available)
-        var connectionManager = ServiceLocator.ServiceProvider.GetService<IConnectionManager>();
+        
+        var connectionManager = ServiceLocator.ServiceProvider.GetService<IWebSocketConnectionManager>();
         if (connectionManager == null)
         {
             throw new InvalidOperationException("ConnectionManager service is not available.");
         }
 
-        // Perform the authentication check using the connectionManager
         if (!connectionManager.IsAuthenticated(socket))
         {
             socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClient
             {
-                ErrorMessage = "You must sign in before entering a room."
+                ErrorMessage = "You must sign in before you connect."
             }));
             throw new UnauthorizedAccessException("Client must be authenticated to use this feature.");
         }
@@ -33,4 +34,4 @@ public class RequireAuthenticationAttribute : BaseEventFilter
 public static class ServiceLocator
 {
     public static IServiceProvider ServiceProvider { get; set; }
-}*/
+}

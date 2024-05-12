@@ -1,4 +1,5 @@
 using System.Reflection;
+using Api.Filters;
 using api.State;
 using Core.Interfaces;
 using Fleck;
@@ -14,15 +15,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<IMQTTClientManager, MQTTClientManager>();
 builder.Services.AddNpgsqlDataSource(Utilities.ProperlyFormattedConnectionString, dataSourceBuilder => dataSourceBuilder.EnableParameterLogging());
 builder.Services.AddSingleton<ICarControlService, CarControlService>();
-builder.Services.AddSingleton<WebSocketConnectionManager>();
+builder.Services.AddSingleton<IWebSocketConnectionManager, WebSocketConnectionManager>();
 
 var clientEventHandlers = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
 
 var app = builder.Build();
 
-var connectionManager = app.Services.GetRequiredService<WebSocketConnectionManager>();
+var connectionManager = app.Services.GetRequiredService<IWebSocketConnectionManager>();
 
 var server = new WebSocketServer("ws://0.0.0.0:8181");
+
+
+ServiceLocator.ServiceProvider = app.Services;
+
 server.Start(socket =>
 {
     socket.OnOpen = () =>
@@ -32,7 +37,16 @@ server.Start(socket =>
 
     socket.OnClose = () =>
     {
+        Console.WriteLine("Connection closed.");
         connectionManager.RemoveConnection(socket.ConnectionInfo.Id);
+        if (!connectionManager.HasMetadata(socket.ConnectionInfo.Id))
+        {
+            Console.WriteLine($"Metadata successfully removed for GUID: {socket.ConnectionInfo.Id}");
+        }
+        else
+        {
+            Console.WriteLine($"Failed to remove metadata for GUID: {socket.ConnectionInfo.Id}");
+        }
     };
     
     socket.OnMessage = async message =>

@@ -1,4 +1,6 @@
-﻿using lib;
+﻿using System.ComponentModel.DataAnnotations;
+using Api.Filters;
+using lib;
 
 namespace Api.Dtos;
 
@@ -18,12 +20,16 @@ public class ServerSendsErrorMessageToClient : BaseDto
     public string ErrorMessage { get; set; }
 }
 
+
 public class ClientWantsToSignInDto: BaseDto
 {
+    [Required(ErrorMessage = "Username is required.")]
+    [MinLength(2, ErrorMessage = "Username must be at least 2 characters long.")]
+    [MaxLength(25, ErrorMessage = "Username must not exceed 25 characters.")]
     public string NickName { get; set; }
 }
 
-public class ClientWnatsToSignOutDto : BaseDto
+public class ClientWantsToSignOutDto : BaseDto
 {
     
 }

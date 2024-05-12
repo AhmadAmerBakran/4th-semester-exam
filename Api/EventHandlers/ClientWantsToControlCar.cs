@@ -1,10 +1,12 @@
 ﻿using Api.Dtos;
+using Api.Filters;
 using Core.Interfaces;
 using Fleck;
 using lib;
 
 namespace Api.EventHandlers;
 
+[RequireAuthentication]
 public class ClientWantsToControlCar : BaseEventHandler<ClientWantsToControlCarDto>
 {
     private readonly ICarControlService _carControlService;

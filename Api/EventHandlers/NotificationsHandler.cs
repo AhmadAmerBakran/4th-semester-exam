@@ -9,9 +9,9 @@ namespace Api.EventHandlers;
 public class NotificationsHandler : BaseEventHandler<NotificationsHandlerDto>
     {
         private readonly ICarControlService _notificationService;
-        private readonly WebSocketConnectionManager _webSocketConnectionManager;
+        private readonly IWebSocketConnectionManager _webSocketConnectionManager;
 
-        public NotificationsHandler(ICarControlService notificationService, WebSocketConnectionManager webSocketConnectionManager)
+        public NotificationsHandler(ICarControlService notificationService, IWebSocketConnectionManager webSocketConnectionManager)
         {
             _notificationService = notificationService;
             _webSocketConnectionManager = webSocketConnectionManager;
