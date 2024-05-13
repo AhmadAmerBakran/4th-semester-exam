@@ -1,4 +1,5 @@
-﻿using Api.Dtos;
+﻿using System.Text.Json;
+using Api.Dtos;
 using Api.Filters;
 using Core.Interfaces;
 using Fleck;
@@ -25,6 +26,10 @@ public class ClientWantsToControlCar : BaseEventHandler<ClientWantsToControlCarD
         }
         catch (Exception ex)
         {
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
+            {
+                ErrorMessage = "Error in sign-in process."
+            }));
             socket.Send($"Failed to send command: {ex.Message}");
             Console.WriteLine(ex.Message);
             Console.WriteLine(ex.InnerException);

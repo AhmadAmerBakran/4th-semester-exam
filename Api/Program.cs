@@ -47,6 +47,12 @@ server.Start(socket =>
             Console.WriteLine($"Failed to remove metadata for GUID: {socket.ConnectionInfo.Id}");
         }
     };
+
+    socket.OnBinary = (data) =>
+    {
+        socket.Send(data);
+        Console.WriteLine($"Received frame with length: {data.Length} on /stream");
+    };
     
     socket.OnMessage = async message =>
     {
