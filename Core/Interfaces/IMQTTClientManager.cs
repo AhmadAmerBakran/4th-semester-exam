@@ -2,10 +2,10 @@
 
 public interface IMQTTClientManager
 {
-    event Action<string, string> MessageReceived;
-
     Task ConnectAsync();
     Task DisconnectAsync();
     Task PublishAsync(string topic, string message);
     Task SubscribeAsync(string topic);
+    void InitializeSubscriptions();
+    public event Action<string, string> MessageReceived;
 }
