@@ -9,9 +9,8 @@ public class ClientWantsToControlCarDto : BaseDto
     public string Command { get; set; }
 }
 
-public class NotificationsHandlerDto : BaseDto
+public class ClientWantsToReceiveNotificationsDto : BaseDto
 {
-    public string Topic { get; set; }
 }
 
 public class ServerSendsErrorMessageToClient : BaseDto

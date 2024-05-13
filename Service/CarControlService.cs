@@ -5,22 +5,18 @@ namespace Service;
 public class CarControlService : ICarControlService
 {
         private readonly IMQTTClientManager _mqttClientManager;
-
+        
         public CarControlService(IMQTTClientManager mqttClientManager)
         {
             _mqttClientManager = mqttClientManager;
-            _mqttClientManager.MessageReceived += HandleReceivedMessage;
+            
         }
-
+        
         public void HandleReceivedMessage(string topic, string message)
         {
             OnNotificationReceived?.Invoke(topic, message);
         }
-
-        public async Task ConnectToCar()
-        {
-            _mqttClientManager.ConnectAsync();
-        }
+        
         public async Task CarControl(string topic, string command)
         {
             await _mqttClientManager.PublishAsync(topic, command);
@@ -30,11 +26,16 @@ public class CarControlService : ICarControlService
             await _mqttClientManager.ConnectAsync();
         }
 
-        public async Task GetNotifications(string topic)
+        public async Task CloseConnection()
         {
-            await _mqttClientManager.SubscribeAsync(topic);
+            await _mqttClientManager.DisconnectAsync();
         }
 
+        public async Task GetNotifications()
+        {
+             _mqttClientManager.InitializeSubscriptions();
+             _mqttClientManager.MessageReceived += HandleReceivedMessage;
+        }
+        
         public event Action<string, string> OnNotificationReceived;
-    
 }
