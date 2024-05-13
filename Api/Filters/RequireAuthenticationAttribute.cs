@@ -20,7 +20,7 @@ public class RequireAuthenticationAttribute : BaseEventFilter
 
         if (!connectionManager.IsAuthenticated(socket))
         {
-            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClient
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
             {
                 ErrorMessage = "You must sign in before you connect."
             }));

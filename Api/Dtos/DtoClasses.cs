@@ -13,9 +13,9 @@ public class ClientWantsToReceiveNotificationsDto : BaseDto
 {
 }
 
-public class ServerSendsErrorMessageToClient : BaseDto
+public class ServerSendsErrorMessageToClientDto : BaseDto
 {
-    public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
 }
 
 

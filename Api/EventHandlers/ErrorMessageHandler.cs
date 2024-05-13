@@ -4,11 +4,11 @@ using lib;
 
 namespace Api.EventHandlers;
 
-public class ErrorMessageHandler : BaseEventHandler<ServerSendsErrorMessageToClient>
+public class ErrorMessageHandler : BaseEventHandler<ServerSendsErrorMessageToClientDto>
 {
-    public override async Task Handle(ServerSendsErrorMessageToClient dto, IWebSocketConnection socket)
+    public override async Task Handle(ServerSendsErrorMessageToClientDto dto, IWebSocketConnection socket)
     {
-        socket.Send($"Error: {dto.ErrorMessage}");
+        await socket.Send($"Error: {dto.ErrorMessage}");
         await Task.CompletedTask;
     }
 }

@@ -28,7 +28,7 @@ public class ClientWantsToSignIn : BaseEventHandler<ClientWantsToSignInDto>
 
             if (metaData == null)
             { 
-                socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClient
+                socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
                 {
                     ErrorMessage = "Failed to sign in due to missing connection metadata."
                 }));
@@ -44,7 +44,7 @@ public class ClientWantsToSignIn : BaseEventHandler<ClientWantsToSignInDto>
         }
         catch (Exception ex)
         {
-            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClient
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
             {
                 ErrorMessage = "Error in sign-in process."
             }));
