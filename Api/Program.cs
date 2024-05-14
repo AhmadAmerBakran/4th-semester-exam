@@ -41,6 +41,7 @@ server.Start(socket =>
         else
         {
             socket.Send("The car is in use right now, please try again later");
+            socket.Close();
         }
         
     };
@@ -81,7 +82,7 @@ server.Start(socket =>
         }catch (Exception e)
         {
                 Console.WriteLine($"Error processing command: {e.Message}");
-                socket.Send("Error processing your command.");
+                socket.Send(e.Message);
         }
     };
 });

@@ -1,4 +1,5 @@
 ﻿using Api.Dtos;
+using Api.Filters;
 using Api.State;
 using Core.Interfaces;
 using Fleck;
@@ -6,6 +7,7 @@ using lib;
 
 namespace Api.EventHandlers;
 
+[RequireAuthentication]
 public class ClientWantsToReceiveNotifications : BaseEventHandler<ClientWantsToReceiveNotificationsDto>
 {
     private readonly ICarControlService _notificationService;

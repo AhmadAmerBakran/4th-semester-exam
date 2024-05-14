@@ -1,11 +1,13 @@
 ﻿using System.Text.Json;
 using Api.Dtos;
+using Api.Filters;
 using Core.Interfaces;
 using Fleck;
 using lib;
 
 namespace Api.EventHandlers;
 
+[RequireAuthentication]
 public class ClientWantsToGetCarLog : BaseEventHandler<ClientWantsToGetCarLogDto>
 {
     private readonly ICarControlService _carControlService;
