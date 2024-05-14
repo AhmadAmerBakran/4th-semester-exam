@@ -41,6 +41,7 @@ public class ClientWantsToSignIn : BaseEventHandler<ClientWantsToSignInDto>
             {
                 Message = "You have connected as " + dto.NickName
             }));
+            _carControlService.AddUserAsync(socket.ConnectionInfo.Id, dto.NickName);
         }
         catch (Exception ex)
         {

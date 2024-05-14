@@ -21,8 +21,8 @@ public class ClientWantsToControlCar : BaseEventHandler<ClientWantsToControlCarD
     {
         try
         {
-            await _carControlService.CarControl(dto.Topic, dto.Command);
-            socket.Send($"Command '{dto.Command}' sent to topic '{dto.Topic}'.");
+            await _carControlService.CarControl(socket.ConnectionInfo.Id, dto.Topic, dto.Command);
+            await socket.Send($"Command '{dto.Command}' sent to topic '{dto.Topic}'.");
         }
         catch (Exception ex)
         {
@@ -33,6 +33,7 @@ public class ClientWantsToControlCar : BaseEventHandler<ClientWantsToControlCarD
             socket.Send($"Failed to send command: {ex.Message}");
             Console.WriteLine(ex.Message);
             Console.WriteLine(ex.InnerException);
+            Console.WriteLine(ex);
         }
     }
 }
