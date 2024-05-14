@@ -33,7 +33,16 @@ server.Start(socket =>
 {
     socket.OnOpen = () =>
     {
-        connectionManager.AddConnection(socket.ConnectionInfo.Id, socket);
+        var connecionPool = connectionManager.GetAllConnections();
+        if (connecionPool.Count() == 0)
+        {
+            connectionManager.AddConnection(socket.ConnectionInfo.Id, socket);
+        }
+        else
+        {
+            socket.Send("The car is in use right now, please try again later");
+        }
+        
     };
 
     socket.OnClose = () =>
