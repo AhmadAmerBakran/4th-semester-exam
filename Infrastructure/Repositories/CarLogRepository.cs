@@ -75,6 +75,17 @@ public class CarLogRepository : ICarLogRepository
             }
         }
 
+        public async Task<IEnumerable<CarNotification>> GetCarLog()
+        {
+            const string query = @$"SELECT user_id as {nameof(CarNotification.UserId)}, from_topic as {nameof(CarNotification.FromTopic)},
+         to_topic as {nameof(CarNotification.ToTopic)}, message as {nameof(CarNotification.Message)}, 
+         message_at as {nameof(CarNotification.MessageAt)} FROM car_log.car_notifications ORDER BY message_at DESC LIMIT 10";
+            using (var connection = _dataSource.CreateConnection())
+            {
+                return await connection.QueryAsync<CarNotification>(query);
+            }
+        }
+
         public async Task<int> DeleteUserAsync(int id)
         {
             const string query = "DELETE FROM car_log.users WHERE id = @Id";

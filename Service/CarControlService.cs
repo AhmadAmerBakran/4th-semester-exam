@@ -1,4 +1,5 @@
-﻿using Core.Interfaces;
+﻿using System.Collections;
+using Core.Interfaces;
 using Core.Models;
 
 namespace Service;
@@ -11,32 +12,34 @@ public class CarControlService : ICarControlService
         {
             _mqttClientManager = mqttClientManager;
             _carLogRepository = carLogRepository;
+            
         }
+
+        private Guid _guid;
         
         public void HandleReceivedMessage(string topic, string message)
         {
             OnNotificationReceived?.Invoke(topic, message);
+            _carLogRepository.AddNotificationAsync(_guid, topic, null, message);
         }
         
         public async Task CarControl(Guid userId, string topic, string command)
         {
             await _mqttClientManager.PublishAsync(topic, command);
             await _carLogRepository.AddNotificationAsync(userId, null, topic, command);
+            _guid = userId;
         }
         public async Task OpenConnection()
         {
             await _mqttClientManager.ConnectAsync();
+            _mqttClientManager.InitializeSubscriptions();
+            _mqttClientManager.MessageReceived += HandleReceivedMessage;
+
         }
 
         public async Task CloseConnection()
         {
             await _mqttClientManager.DisconnectAsync();
-        }
-
-        public async Task GetNotifications()
-        {
-             _mqttClientManager.InitializeSubscriptions();
-             _mqttClientManager.MessageReceived += HandleReceivedMessage;
         }
 
         public async Task AddUserAsync(Guid userId, string nickname)
@@ -45,4 +48,9 @@ public class CarControlService : ICarControlService
         }
         
         public event Action<string, string> OnNotificationReceived;
+
+        public async Task <IEnumerable> GetCarLog()
+        {
+             return await _carLogRepository.GetCarLog();
+        }
 }

@@ -36,3 +36,8 @@ public class ServerClientSignIn : BaseDto
 {
     public string Message { get; set; }
 }
+
+public class ClientWantsToGetCarLogDto : BaseDto
+{
+    
+}
