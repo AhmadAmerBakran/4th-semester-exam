@@ -1,5 +1,7 @@
-﻿using Api.Dtos;
+﻿using System.Text.Json;
+using Api.Dtos;
 using Api.State;
+using Core.Exceptions;
 using Core.Interfaces;
 using Fleck;
 using lib;
@@ -26,13 +28,24 @@ public class ClientWantsToSignOut : BaseEventHandler<ClientWantsToSignOutDto>
             socket.Close();
             Console.WriteLine("User signed out and connection closed.");
         }
+        catch (AppException ex)
+        {
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
+            {
+                ErrorMessage = ex.Message
+            }));
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.InnerException?.Message);
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error processing sign out: {ex.Message}");
-            if (socket.IsAvailable)
+            var errorMessage = "An unexpected error occurred. Please try again later.";
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
             {
-                socket.Send("Error processing your sign out request.");
-            }
+                ErrorMessage = errorMessage
+            }));
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.InnerException?.Message);
         }
 
         await Task.CompletedTask;

@@ -1,4 +1,5 @@
 ﻿using api.State;
+using Core.Exceptions;
 using Fleck;
 
 namespace Api.State;
@@ -10,29 +11,43 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
 
     public void AddConnection(Guid id, IWebSocketConnection socket)
     {
-        if (!_connections.ContainsKey(id))
+        try
         {
-            _connections[id] = new WebSocketWithMetaData(socket);
-            Console.WriteLine($"New connection added with GUID: {id}");
+            if (!_connections.ContainsKey(id))
+            {
+                _connections[id] = new WebSocketWithMetaData(socket);
+                Console.WriteLine($"New connection added with GUID: {id}");
+            }
+            else
+            {
+                Console.WriteLine($"Connection with GUID: {id} already exists. Updating socket reference.");
+                _connections[id].Connection = socket;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine($"Connection with GUID: {id} already exists. Updating socket reference.");
-            _connections[id].Connection = socket;
+            throw new AppException("An error occurred while establishing the connection. Please try again later.");
         }
     }
 
     public void RemoveConnection(Guid id)
     {
-        if (_connections.ContainsKey(id))
+        try
         {
-            _connections[id].Connection.Close();
-            _connections.Remove(id);
-            Console.WriteLine($"Connection and associated metadata removed: {id}");
+            if (_connections.ContainsKey(id))
+            {
+                _connections[id].Connection.Close();
+                _connections.Remove(id);
+                Console.WriteLine($"Connection and associated metadata removed: {id}");
+            }
+            else
+            {
+                Console.WriteLine($"Attempted to remove non-existent connection with GUID: {id}");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine($"Attempted to remove non-existent connection with GUID: {id}");
+            throw new AppException("An error occurred while disconnecting. Please try again later or close the app.");
         }
     }
 
@@ -40,26 +55,54 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
 
     public WebSocketWithMetaData GetConnection(Guid id)
     {
-        _connections.TryGetValue(id, out var metaData);
-        return metaData;
+        try
+        {
+            _connections.TryGetValue(id, out var metaData);
+            return metaData;
+        }
+        catch (Exception ex)
+        {
+            throw new AppException("An error occurred while retrieving a connection. Please try again later.");
+        }
     }
 
     public IEnumerable<WebSocketWithMetaData> GetAllConnections()
     {
-        return _connections.Values;
+        try
+        {
+            return _connections.Values;
+        }
+        catch (Exception ex)
+        {
+            throw new AppException("An error occurred while retrieving all connections. Please try again later.");
+        }
     }
     
     public bool IsAuthenticated(IWebSocketConnection socket)
     {
-        if (_connections.TryGetValue(socket.ConnectionInfo.Id, out WebSocketWithMetaData metaData))
+        try
         {
-            return !string.IsNullOrEmpty(metaData.Username);
+            if (_connections.TryGetValue(socket.ConnectionInfo.Id, out WebSocketWithMetaData metaData))
+            {
+                return !string.IsNullOrEmpty(metaData.Username);
+            }
+            return false;
         }
-        return false;
+        catch (Exception ex)
+        {
+            throw new AppException("An error occurred while checking authentication. Please try again later.");
+        }
     }
     
     public bool HasMetadata(Guid id)
     {
-        return _connections.ContainsKey(id);
+        try
+        {
+            return _connections.ContainsKey(id);
+        }
+        catch (Exception ex)
+        {
+            throw new AppException("An error occurred while checking metadata. Please try again later.");
+        }
     }
 }
