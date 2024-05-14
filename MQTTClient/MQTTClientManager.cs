@@ -1,8 +1,10 @@
 ﻿using System.Security.Authentication;
 using System.Text;
+using Core.Exceptions;
 using Core.Interfaces;
 using MQTTnet;
 using MQTTnet.Client;
+using MQTTnet.Exceptions;
 using MQTTnet.Formatter;
 using MQTTnet.Protocol;
 
@@ -24,7 +26,19 @@ namespace MQTTClient
         public void InitializeSubscriptions()
         {
             _client.ApplicationMessageReceivedAsync += HandleApplicationMessageReceivedAsync;
-            SubscribeAsync("car/notifications").Wait();
+            try
+            {
+                SubscribeAsync("car/notifications").Wait();
+            }
+            catch (AggregateException ex)
+            {
+                var innerEx = ex.InnerException;
+                if (innerEx is MqttCommunicationException || innerEx is TimeoutException || innerEx is AuthenticationException || innerEx is Exception)
+                {
+                    Console.WriteLine($"Error: {innerEx.Message}");
+                    throw new AppException("A MQTT subscription error occurred. Please try again later.");
+                }
+            }
         }
         private async Task HandleApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs e)
         {
@@ -65,9 +79,25 @@ namespace MQTTClient
                 await _client.ConnectAsync(mqttClientOptions, CancellationToken.None);
                 Console.WriteLine("Connected to MQTT Broker.");
             }
+            catch (MqttCommunicationException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw new AppException("An error occurred while connecting to the MQTT broker. Please try again later.");
+            }
+            catch (AuthenticationException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw new AppException("Authentication failed while connecting to the MQTT broker. Please check your credentials.");
+            }
+            catch (TimeoutException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw new AppException("The connection to the MQTT broker timed out. Please try again later.");
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to connect: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
+                throw new AppException("An unexpected error occurred while connecting to the MQTT broker. Please try again later.");
             }
         }
 
@@ -78,9 +108,15 @@ namespace MQTTClient
                 await _client.DisconnectAsync();
                 Console.WriteLine("Disconnected from MQTT Broker.");
             }
+            catch (MqttCommunicationException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw new AppException("An error occurred while disconnecting from the MQTT broker. Please try again later.");
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to disconnect: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
+                throw new AppException("An unexpected error occurred while disconnecting from the MQTT broker. Please try again later.");
             }
         }
 
@@ -93,8 +129,21 @@ namespace MQTTClient
                 .WithRetainFlag()
                 .Build();
 
-            await _client.PublishAsync(mqttMessage);
-            Console.WriteLine($"Published to {topic}: {message}");
+            try
+            {
+                await _client.PublishAsync(mqttMessage);
+                Console.WriteLine($"Published to {topic}: {message}");
+            }
+            catch (MqttCommunicationException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw new AppException("An error occurred while publishing to the MQTT broker. Please try again later.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw new AppException("An unexpected error occurred while publishing to the MQTT broker. Please try again later.");
+            }
         }
 
         public async Task SubscribeAsync(string topic)
@@ -105,8 +154,21 @@ namespace MQTTClient
                         .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce))
                 .Build();
 
-            await _client.SubscribeAsync(subscribeOptions);
-            Console.WriteLine($"Subscribed to {topic}");
+            try
+            {
+                await _client.SubscribeAsync(subscribeOptions);
+                Console.WriteLine($"Subscribed to {topic}");
+            }
+            catch (MqttCommunicationException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw new AppException("An error occurred while subscribing to the MQTT broker. Please try again later.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw new AppException("An unexpected error occurred while subscribing to the MQTT broker. Please try again later.");
+            }
         }
     }
 }

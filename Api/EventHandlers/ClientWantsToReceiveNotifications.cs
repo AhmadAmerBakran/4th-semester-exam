@@ -1,6 +1,8 @@
-﻿using Api.Dtos;
+﻿using System.Text.Json;
+using Api.Dtos;
 using Api.Filters;
 using Api.State;
+using Core.Exceptions;
 using Core.Interfaces;
 using Fleck;
 using lib;
@@ -24,9 +26,32 @@ public class ClientWantsToReceiveNotifications : BaseEventHandler<ClientWantsToR
     {
         foreach (var socket in _webSocketConnectionManager.GetAllConnections())
         {
-            socket.Connection.Send($"Notification on '{topic}': {message}");
+            try
+            {
+                socket.Connection.Send($"Notification on '{topic}': {message}");
+            }
+            catch (AppException ex)
+            {
+                socket.Connection.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
+                {
+                    ErrorMessage = ex.Message
+                }));
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.InnerException?.Message);
+            }
+            catch (Exception ex)
+            {
+                var errorMessage = "An unexpected error occurred. Please try again later.";
+                socket.Connection.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
+                {
+                    ErrorMessage = errorMessage
+                }));
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.InnerException?.Message);
+            }
         }
     }
+
     public override async Task Handle(ClientWantsToReceiveNotificationsDto dto, IWebSocketConnection socket)
     {
         await Task.CompletedTask; 

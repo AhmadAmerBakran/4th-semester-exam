@@ -6,6 +6,7 @@ using Infrastructure;
 using MQTTClient;
 using Service;
 using Api.State;
+using Core.Exceptions;
 using Infrastructure.Repositories;
 using lib;
 
@@ -33,56 +34,104 @@ server.Start(socket =>
 {
     socket.OnOpen = () =>
     {
-        var connecionPool = connectionManager.GetAllConnections();
-        if (connecionPool.Count() == 0)
+        try
         {
-            connectionManager.AddConnection(socket.ConnectionInfo.Id, socket);
+            var connecionPool = connectionManager.GetAllConnections();
+            if (connecionPool.Count() <= 1)
+            {
+                connectionManager.AddConnection(socket.ConnectionInfo.Id, socket);
+            }
+            else
+            {
+                socket.Send("The car is in use right now, please try again later");
+                socket.Close();
+            }
         }
-        else
+        catch (AppException ex)
         {
-            socket.Send("The car is in use right now, please try again later");
-            socket.Close();
+            socket.Send(ex.Message);
+            Console.WriteLine($"AppException: {ex.Message}");
         }
-        
+        catch (Exception ex)
+        {
+            var errorMessage = "An unexpected error occurred during the connection process. Please try again later.";
+            socket.Send(errorMessage);
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
     };
 
     socket.OnClose = () =>
     {
-        Console.WriteLine("Connection closed.");
-        connectionManager.RemoveConnection(socket.ConnectionInfo.Id);
-        if (!connectionManager.HasMetadata(socket.ConnectionInfo.Id))
+        try
         {
-            Console.WriteLine($"Metadata successfully removed for GUID: {socket.ConnectionInfo.Id}");
+            Console.WriteLine("Connection closed.");
+            connectionManager.RemoveConnection(socket.ConnectionInfo.Id);
+            if (!connectionManager.HasMetadata(socket.ConnectionInfo.Id))
+            {
+                Console.WriteLine($"Metadata successfully removed for GUID: {socket.ConnectionInfo.Id}");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to remove metadata for GUID: {socket.ConnectionInfo.Id}");
+            }
         }
-        else
+        catch (AppException ex)
         {
-            Console.WriteLine($"Failed to remove metadata for GUID: {socket.ConnectionInfo.Id}");
+            socket.Send(ex.Message);
+            Console.WriteLine($"AppException: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = "An unexpected error occurred while closing the connection. Please try again later.";
+            socket.Send(errorMessage);
+            Console.WriteLine($"Exception: {ex.Message}");
         }
     };
 
     socket.OnBinary = (data) =>
     {
-        socket.Send(data);
-        Console.WriteLine($"Received frame with length: {data.Length} on /stream");
+        try
+        {
+            socket.Send(data);
+            Console.WriteLine($"Received frame with length: {data.Length} on /stream");
+        }
+        catch (AppException ex)
+        {
+            socket.Send(ex.Message);
+            Console.WriteLine($"AppException: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = "An unexpected error occurred while processing binary data. Please try again later.";
+            socket.Send(errorMessage);
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
     };
-    
+
     socket.OnMessage = async message =>
     {
         try
         {
             var metaData = connectionManager.GetConnection(socket.ConnectionInfo.Id);
             if (metaData != null)
-            { 
+            {
                 await app.InvokeClientEventHandler(clientEventHandlers, socket, message);
             }
             else
             {
                 socket.Send("No valid session found.");
             }
-        }catch (Exception e)
+        }
+        catch (AppException ex)
         {
-                Console.WriteLine($"Error processing command: {e.Message}");
-                socket.Send(e.Message);
+            socket.Send(ex.Message);
+            Console.WriteLine($"AppException: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = "An unexpected error occurred while processing the message. Please try again later.";
+            socket.Send(errorMessage);
+            Console.WriteLine($"Exception: {ex.Message}");
         }
     };
 });

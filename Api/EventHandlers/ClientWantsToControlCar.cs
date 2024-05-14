@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Api.Dtos;
 using Api.Filters;
+using Core.Exceptions;
 using Core.Interfaces;
 using Fleck;
 using lib;
@@ -24,16 +25,24 @@ public class ClientWantsToControlCar : BaseEventHandler<ClientWantsToControlCarD
             await _carControlService.CarControl(socket.ConnectionInfo.Id, dto.Topic, dto.Command);
             await socket.Send($"Command '{dto.Command}' sent to topic '{dto.Topic}'.");
         }
-        catch (Exception ex)
+        catch (AppException ex)
         {
             socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
             {
-                ErrorMessage = "Error in sign-in process."
+                ErrorMessage = ex.Message
             }));
-            socket.Send($"Failed to send command: {ex.Message}");
             Console.WriteLine(ex.Message);
-            Console.WriteLine(ex.InnerException);
-            Console.WriteLine(ex);
+            Console.WriteLine(ex.InnerException?.Message);
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = "An unexpected error occurred. Please try again later.";
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
+            {
+                ErrorMessage = errorMessage
+            }));
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.InnerException?.Message);
         }
     }
 }
