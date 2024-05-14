@@ -14,7 +14,6 @@ public class ClientWantsToReceiveNotifications : BaseEventHandler<ClientWantsToR
     public ClientWantsToReceiveNotifications(ICarControlService notificationService, IWebSocketConnectionManager webSocketConnectionManager)
     {
         _notificationService = notificationService;
-        _notificationService.GetNotifications();
         _webSocketConnectionManager = webSocketConnectionManager;
         _notificationService.OnNotificationReceived += OnNotificationReceived;
     }

@@ -6,6 +6,7 @@ using Infrastructure;
 using MQTTClient;
 using Service;
 using Api.State;
+using Infrastructure.Repositories;
 using lib;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,7 @@ builder.Services.AddSingleton<IMQTTClientManager, MQTTClientManager>();
 builder.Services.AddNpgsqlDataSource(Utilities.ProperlyFormattedConnectionString, dataSourceBuilder => dataSourceBuilder.EnableParameterLogging());
 builder.Services.AddSingleton<ICarControlService, CarControlService>();
 builder.Services.AddSingleton<IWebSocketConnectionManager, WebSocketConnectionManager>();
+builder.Services.AddSingleton<ICarLogRepository, CarLogRepository>();
 
 var clientEventHandlers = builder.FindAndInjectClientEventHandlers(Assembly.GetExecutingAssembly());
 
@@ -31,7 +33,16 @@ server.Start(socket =>
 {
     socket.OnOpen = () =>
     {
-        connectionManager.AddConnection(socket.ConnectionInfo.Id, socket);
+        var connecionPool = connectionManager.GetAllConnections();
+        if (connecionPool.Count() == 0)
+        {
+            connectionManager.AddConnection(socket.ConnectionInfo.Id, socket);
+        }
+        else
+        {
+            socket.Send("The car is in use right now, please try again later");
+        }
+        
     };
 
     socket.OnClose = () =>
