@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
 
-class GamepadWidget extends StatelessWidget {
+class GamepadWidget extends StatefulWidget {
+  @override
+  _GamepadWidgetState createState() => _GamepadWidgetState();
+}
+
+class _GamepadWidgetState extends State<GamepadWidget> {
+  double _flashIntensity = 0;
+
   @override
   Widget build(BuildContext context) {
     final carControlProvider = Provider.of<CarControlProvider>(context, listen: false);
@@ -119,6 +126,43 @@ class GamepadWidget extends StatelessWidget {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
             elevation: 10,
           ),
+        ),
+        SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () => carControlProvider.sendCommand('cam/control', 'start'),
+          child: Text('Start Stream', style: TextStyle(fontSize: 18)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            elevation: 10,
+          ),
+        ),
+        SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () => carControlProvider.sendCommand('cam/control', 'stop'),
+          child: Text('Stop Stream', style: TextStyle(fontSize: 18)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            elevation: 10,
+          ),
+        ),
+        SizedBox(height: 20),
+        Text('Flash Intensity'),
+        Slider(
+          value: _flashIntensity,
+          min: 0,
+          max: 100,
+          divisions: 100,
+          label: _flashIntensity.round().toString(),
+          onChanged: (value) {
+            setState(() {
+              _flashIntensity = value;
+              carControlProvider.sendCommand('cam/flash', value.round().toString());
+            });
+          },
         ),
       ],
     );
