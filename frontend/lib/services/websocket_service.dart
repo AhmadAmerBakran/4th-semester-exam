@@ -14,7 +14,6 @@ class WebSocketService {
 
   WebSocketService(String url, this._onMessageReceived, this._onBinaryMessageReceived) {
     _channel = WebSocketChannel.connect(Uri.parse(url));
-
     _channel.stream.listen((message) {
       if (message is String) {
         _onMessageReceived(message);
@@ -22,8 +21,6 @@ class WebSocketService {
         _addFrameToBuffer(Uint8List.fromList(message));
       }
     });
-
-    // Start a timer to display frames from the buffer
     _frameTimer = Timer.periodic(Duration(milliseconds: 100), (_) => _displayFrameFromBuffer());
   }
 

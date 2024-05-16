@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../services/websocket_service.dart';
+import '../widgets/flash_intensity_slider.dart';
+import '../widgets/stream_widget.dart';
+import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
 import '../widgets/lamp_widget.dart';
-import '../../utils/constants.dart';
 
 class CarControlScreen extends StatefulWidget {
   @override
@@ -18,7 +20,6 @@ class _CarControlScreenState extends State<CarControlScreen> {
   static const String streamUrl = "ws://192.168.0.165:8181/stream";
   late WebSocketService _webSocketService;
   ui.Image? _currentImage;
-  Uint8List? _nextImageData;
 
   @override
   void initState() {
@@ -61,8 +62,6 @@ class _CarControlScreenState extends State<CarControlScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final carControlProvider = Provider.of<CarControlProvider>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Car Control'),
@@ -70,19 +69,19 @@ class _CarControlScreenState extends State<CarControlScreen> {
           IconButton(
             icon: Icon(Icons.notifications),
             onPressed: () {
-              carControlProvider.receiveNotifications();
+              context.read<CarControlProvider>().receiveNotifications();
             },
           ),
           IconButton(
             icon: Icon(Icons.history),
             onPressed: () {
-              carControlProvider.getCarLog();
+              context.read<CarControlProvider>().getCarLog();
             },
           ),
           IconButton(
             icon: Icon(Icons.exit_to_app),
             onPressed: () {
-              carControlProvider.signOut();
+              context.read<CarControlProvider>().signOut();
               Navigator.pushReplacementNamed(context, '/');
             },
           ),
@@ -95,25 +94,12 @@ class _CarControlScreenState extends State<CarControlScreen> {
             child: Column(
               children: [
                 if (_currentImage != null)
-                  Container(
-                    width: constraints.maxWidth > kWebWidth ? kWebWidth : kMobileWidth,
-                    height: constraints.maxHeight > kWebHeight ? kWebHeight : kMobileHeight,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.blueAccent),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: CustomPaint(
-                        painter: FramePainter(_currentImage!),
-                      ),
-                    ),
-                  ),
+                  StreamWidget(currentImage: _currentImage!),
                 SizedBox(height: 20),
                 Expanded(
-                  child: constraints.maxWidth > kWebWidth
-                      ? _buildWebLayout(carControlProvider)
-                      : _buildMobileLayout(carControlProvider),
+                  child: constraints.maxWidth > 600
+                      ? _buildWebLayout()
+                      : _buildMobileLayout(),
                 ),
               ],
             ),
@@ -123,30 +109,20 @@ class _CarControlScreenState extends State<CarControlScreen> {
     );
   }
 
-  Widget _buildMobileLayout(CarControlProvider carControlProvider) {
+  Widget _buildMobileLayout() {
     return Column(
       children: [
         GamepadWidget(),
         SizedBox(height: 20),
         Text('Flash Intensity'),
-        Slider(
-          value: carControlProvider.flashIntensity.toDouble(),
-          min: 0,
-          max: 100,
-          divisions: 5,
-          label: carControlProvider.flashIntensity.round().toString(),
-          onChanged: (value) {
-            carControlProvider.setFlashIntensity(value.round());
-          },
-        ),
-        SizedBox(height: 20),
+        FlashIntensitySlider(),
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               LampWidget(),
               SizedBox(height: 20),
-              _buildControlButtons(carControlProvider),
+              ControlButtons(),
             ],
           ),
         ),
@@ -154,7 +130,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
     );
   }
 
-  Widget _buildWebLayout(CarControlProvider carControlProvider) {
+  Widget _buildWebLayout() {
     return Row(
       children: [
         Expanded(
@@ -163,16 +139,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
               GamepadWidget(),
               SizedBox(height: 20),
               Text('Flash Intensity'),
-              Slider(
-                value: carControlProvider.flashIntensity.toDouble(),
-                min: 0,
-                max: 100,
-                divisions: 5,
-                label: carControlProvider.flashIntensity.round().toString(),
-                onChanged: (value) {
-                  carControlProvider.setFlashIntensity(value.round());
-                },
-              ),
+              FlashIntensitySlider(),
             ],
           ),
         ),
@@ -182,82 +149,8 @@ class _CarControlScreenState extends State<CarControlScreen> {
             children: [
               LampWidget(),
               SizedBox(height: 20),
-              _buildControlButtons(carControlProvider),
+              ControlButtons(),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildControlButtons(CarControlProvider carControlProvider) {
-    return Column(
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            carControlProvider.startStream();
-            _connectToWebSocket();
-          },
-          child: Text('Start Stream'),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () {
-            carControlProvider.stopStream();
-            _disconnectFromWebSocket();
-          },
-          child: Text('Stop Stream'),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/control', '7'),
-          child: Text('Auto Drive', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/led/control', 'on'),
-          child: Text('Turn On Lights', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/led/control', 'off'),
-          child: Text('Turn Off Lights', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black12,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/led/control', 'auto'),
-          child: Text('Auto Light Mode', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.purple,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
           ),
         ),
       ],
@@ -268,22 +161,5 @@ class _CarControlScreenState extends State<CarControlScreen> {
   void dispose() {
     _webSocketService.close();
     super.dispose();
-  }
-}
-
-class FramePainter extends CustomPainter {
-  final ui.Image image;
-
-  FramePainter(this.image);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-    canvas.drawImage(image, Offset.zero, paint);
-  }
-
-  @override
-  bool shouldRepaint(FramePainter oldDelegate) {
-    return oldDelegate.image != image;
   }
 }
