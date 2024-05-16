@@ -11,6 +11,17 @@ class ControlButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final carControlProvider = Provider.of<CarControlProvider>(context);
+    String getLightButtonText(LightState state) {
+      switch (state) {
+        case LightState.on:
+          return 'Auto Light Mode';
+        case LightState.auto:
+          return 'Turn Off Lights';
+        case LightState.off:
+        default:
+          return 'Turn On Lights';
+      }
+    }
 
     return Column(
       children: [
@@ -50,32 +61,13 @@ class ControlButtons extends StatelessWidget {
         ),
         SizedBox(height: 20),
         ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/led/control', 'on'),
-          child: Text('Turn On Lights', style: TextStyle(fontSize: 18)),
+          onPressed: carControlProvider.cycleLightState,
+          child: Text(
+            getLightButtonText(carControlProvider.lightState),
+            style: TextStyle(fontSize: 18),
+          ),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.orange,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/led/control', 'off'),
-          child: Text('Turn Off Lights', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black12,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/led/control', 'auto'),
-          child: Text('Auto Light Mode', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.purple,
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
             elevation: 10,

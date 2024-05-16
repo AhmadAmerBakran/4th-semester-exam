@@ -99,42 +99,40 @@ class _CarControlScreenState extends State<CarControlScreen> {
           ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                // Reserve space for the StreamWidget
-                Container(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight * 0.4, // 40% of the height
-                  child: Center(
-                    child: Container(
-                      width: constraints.maxWidth > 600 ? kWebWidth : kMobileWidth,
-                      height: constraints.maxHeight * 0.4,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: _isStreaming
-                          ? _currentImage != null
-                          ? StreamWidget(currentImage: _currentImage!)
-                          : Center(child: CircularProgressIndicator())
-                          : Center(child: Text('Stream not started')),
-                    ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            // Reserve space for the StreamWidget
+            Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.4, // 40% of the height
+              child: Center(
+                child: Container(
+                  width: MediaQuery.of(context).size.width > 600 ? kWebWidth : kMobileWidth,
+                  height: MediaQuery.of(context).size.height * 0.4,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.blueAccent),
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  child: _isStreaming
+                      ? _currentImage != null
+                      ? StreamWidget(currentImage: _currentImage!)
+                      : Center(child: CircularProgressIndicator())
+                      : Center(child: Text('Stream not started')),
                 ),
-                SizedBox(height: 20),
-                Expanded(
-                  child: constraints.maxWidth > 600
-                      ? _buildWebLayout()
-                      : _buildMobileLayout(),
-                ),
-              ],
+              ),
             ),
-          );
-        },
+            SizedBox(height: 20),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return constraints.maxWidth > 600
+                    ? _buildWebLayout()
+                    : _buildMobileLayout();
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -146,18 +144,12 @@ class _CarControlScreenState extends State<CarControlScreen> {
         SizedBox(height: 20),
         Text('Flash Intensity'),
         FlashIntensitySlider(),
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              LampWidget(),
-              SizedBox(height: 20),
-              ControlButtons(
-                onStartStream: _startStream,
-                onStopStream: _stopStream,
-              ),
-            ],
-          ),
+        SizedBox(height: 20),
+        LampWidget(),
+        SizedBox(height: 20),
+        ControlButtons(
+          onStartStream: _startStream,
+          onStopStream: _stopStream,
         ),
       ],
     );
