@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../services/websocket_service.dart';
+import '../widgets/flash_intensity_slider.dart';
+import '../widgets/stream_widget.dart';
+import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
 import '../widgets/lamp_widget.dart';
+import '../../utils/constants.dart';
 
 class CarControlScreen extends StatefulWidget {
   @override
@@ -12,43 +18,62 @@ class CarControlScreen extends StatefulWidget {
 }
 
 class _CarControlScreenState extends State<CarControlScreen> {
-  static const String streamUrl = "ws://192.168.0.165:8181/stream"; // Adjust the URL as needed
+  static const String streamUrl = WEBSOCKET_URL;
   late WebSocketService _webSocketService;
-  Uint8List? _imageData;
+  ui.Image? _currentImage;
+  bool _isStreaming = false;
 
   @override
   void initState() {
     super.initState();
+    print("CarControlScreen initialized");
   }
 
   void _onMessageReceived(String message) {
     print("Received text message: $message");
   }
 
-  void _onBinaryMessageReceived(List<int> message) {
+  void _onBinaryMessageReceived(Uint8List message) async {
+    print("Received binary message of length: ${message.length}");
+    final decodedImage = await _decodeImageFromList(message);
     setState(() {
-      _imageData = Uint8List.fromList(message);
+      _currentImage = decodedImage;
     });
   }
 
-  void _connectToWebSocket() {
+  Future<ui.Image> _decodeImageFromList(Uint8List list) async {
+    final Completer<ui.Image> completer = Completer();
+    ui.decodeImageFromList(list, (ui.Image img) {
+      completer.complete(img);
+    });
+    return completer.future;
+  }
+
+  void _startStream() {
+    print("Starting stream...");
     _webSocketService = WebSocketService(
       streamUrl,
       _onMessageReceived,
       _onBinaryMessageReceived,
     );
+    setState(() {
+      _isStreaming = true;
+    });
     print("Connected to WebSocket");
   }
 
-  void _disconnectFromWebSocket() {
+  void _stopStream() {
+    print("Stopping stream...");
     _webSocketService.close();
+    setState(() {
+      _isStreaming = false;
+      _currentImage = null;
+    });
     print("Disconnected from WebSocket");
   }
 
   @override
   Widget build(BuildContext context) {
-    final carControlProvider = Provider.of<CarControlProvider>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Car Control'),
@@ -56,155 +81,123 @@ class _CarControlScreenState extends State<CarControlScreen> {
           IconButton(
             icon: Icon(Icons.notifications),
             onPressed: () {
-              carControlProvider.receiveNotifications();
+              context.read<CarControlProvider>().receiveNotifications();
             },
           ),
           IconButton(
             icon: Icon(Icons.history),
             onPressed: () {
-              carControlProvider.getCarLog();
+              context.read<CarControlProvider>().getCarLog();
             },
           ),
           IconButton(
             icon: Icon(Icons.exit_to_app),
             onPressed: () {
-              carControlProvider.signOut();
+              context.read<CarControlProvider>().signOut();
               Navigator.pushReplacementNamed(context, '/');
             },
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            if (_imageData != null)
-              Container(
-                width: double.infinity,
-                height: 200,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.blueAccent),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.memory(
-                    _imageData!,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            SizedBox(height: 20),
-            Expanded(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      children: [
-                        GamepadWidget(),
-                        SizedBox(height: 20),
-                        Text('Flash Intensity'),
-                        Slider(
-                          value: carControlProvider.flashIntensity.toDouble(),
-                          min: 0,
-                          max: 100,
-                          divisions: 5,
-                          label: carControlProvider.flashIntensity.round().toString(),
-                          onChanged: (value) {
-                            carControlProvider.setFlashIntensity(value.round());
-                          },
-                        ),
-                      ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              children: [
+                // Reserve space for the StreamWidget
+                Container(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight * 0.4, // 40% of the height
+                  child: Center(
+                    child: Container(
+                      width: constraints.maxWidth > 600 ? kWebWidth : kMobileWidth,
+                      height: constraints.maxHeight * 0.4,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: _isStreaming
+                          ? _currentImage != null
+                          ? StreamWidget(currentImage: _currentImage!)
+                          : Center(child: CircularProgressIndicator())
+                          : Center(child: Text('Stream not started')),
                     ),
                   ),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        LampWidget(),
-                        SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () {
-                            carControlProvider.startStream();
-                            _connectToWebSocket();
-                          },
-                          child: Text('Start Stream'),
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () {
-                            carControlProvider.stopStream();
-                            _disconnectFromWebSocket();
-                          },
-                          child: Text('Stop Stream'),
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () => carControlProvider.sendCommand('car/control', '7'),
-                          child: Text('Auto Drive', style: TextStyle(fontSize: 18)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                            elevation: 10,
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () => carControlProvider.sendCommand('car/led/control', 'on'),
-                          child: Text('Turn On Lights', style: TextStyle(fontSize: 18)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                            elevation: 10,
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () => carControlProvider.sendCommand('car/led/control', 'off'),
-                          child: Text('Turn Off Lights', style: TextStyle(fontSize: 18)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black12,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                            elevation: 10,
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () => carControlProvider.sendCommand('car/led/control', 'auto'),
-                          child: Text('Auto Light Mode', style: TextStyle(fontSize: 18)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.purple,
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                            elevation: 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                SizedBox(height: 20),
+                Expanded(
+                  child: constraints.maxWidth > 600
+                      ? _buildWebLayout()
+                      : _buildMobileLayout(),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        GamepadWidget(),
+        SizedBox(height: 20),
+        Text('Flash Intensity'),
+        FlashIntensitySlider(),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              LampWidget(),
+              SizedBox(height: 20),
+              ControlButtons(
+                onStartStream: _startStream,
+                onStopStream: _stopStream,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWebLayout() {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            children: [
+              GamepadWidget(),
+              SizedBox(height: 20),
+              Text('Flash Intensity'),
+              FlashIntensitySlider(),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              LampWidget(),
+              SizedBox(height: 20),
+              ControlButtons(
+                onStartStream: _startStream,
+                onStopStream: _stopStream,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   @override
   void dispose() {
-    _webSocketService.close();
+    if (_isStreaming) {
+      _webSocketService.close();
+    }
     super.dispose();
   }
 }

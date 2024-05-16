@@ -16,13 +16,11 @@ class CarControlProvider with ChangeNotifier {
   void sendCommand(String topic, String command) {
     webSocketService.sendCarControlCommand(topic, command);
     if (topic == 'car/led/control') {
-      if (command == 'on') {
-        _lightState = LightState.on;
-      } else if (command == 'off') {
-        _lightState = LightState.off;
-      } else if (command == 'auto') {
-        _lightState = LightState.auto;
-      }
+      _lightState = command == 'on'
+          ? LightState.on
+          : command == 'off'
+          ? LightState.off
+          : LightState.auto;
       notifyListeners();
     }
   }
