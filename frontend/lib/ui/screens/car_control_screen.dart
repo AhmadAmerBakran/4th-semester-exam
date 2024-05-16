@@ -104,10 +104,20 @@ class _CarControlScreenState extends State<CarControlScreen> {
             padding: const EdgeInsets.all(20.0),
             child: Column(
               children: [
-                if (_isStreaming && _currentImage != null)
-                  StreamWidget(currentImage: _currentImage!),
-                if (_isStreaming && _currentImage == null)
-                  Center(child: CircularProgressIndicator()), // Show a loader until the first frame is received
+                // Reserve space for the StreamWidget
+                Container(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight * 0.4, // 40% of the height
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.blueAccent),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: _isStreaming
+                      ? _currentImage != null
+                      ? StreamWidget(currentImage: _currentImage!)
+                      : Center(child: CircularProgressIndicator())
+                      : Center(child: Text('Stream not started')),
+                ),
                 SizedBox(height: 20),
                 Expanded(
                   child: constraints.maxWidth > 600
