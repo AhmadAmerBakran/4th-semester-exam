@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/ui/widgets/styled_button_widget.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
 
@@ -24,54 +25,43 @@ class ControlButtons extends StatelessWidget {
     }
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton(
-          onPressed: () {
-            carControlProvider.startStream();
-            onStartStream();
-          },
-          child: Text('Start Stream'),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          ),
+        CustomIconButton(
+          icon: Icons.drive_eta,
+          onTap: () => carControlProvider.sendCommand('car/control', '7'),
+          color: Colors.blue,
+          size: 60,
         ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () {
-            carControlProvider.stopStream();
-            onStopStream();
-          },
-          child: Text('Stop Stream'),
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomIconButton(
+              icon: Icons.play_arrow,
+              onTap: () {
+                carControlProvider.startStream();
+                onStartStream();
+              },
+              color: Colors.green,
+              size: 60,
+            ),
+            SizedBox(width: 20),
+            CustomIconButton(
+              icon: Icons.stop,
+              onTap: () {
+                carControlProvider.stopStream();
+                onStopStream();
+              },
+              color: Colors.red,
+              size: 60,
+            ),
+          ],
         ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/control', '7'),
-          child: Text('Auto Drive', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: carControlProvider.cycleLightState,
-          child: Text(
-            getLightButtonText(carControlProvider.lightState),
-            style: TextStyle(fontSize: 18),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
+        CustomIconButton(
+          icon: Icons.lightbulb,
+          onTap: carControlProvider.cycleLightState,
+          color: Colors.orange,
+          size: 60,
         ),
       ],
     );

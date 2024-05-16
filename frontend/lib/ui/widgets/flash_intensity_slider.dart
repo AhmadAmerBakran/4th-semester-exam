@@ -11,7 +11,7 @@ class FlashIntensitySlider extends StatelessWidget {
           value: carControlProvider.flashIntensity.toDouble(),
           min: 0,
           max: 100,
-          divisions: 5,
+          divisions: 4,
           label: carControlProvider.flashIntensity.round().toString(),
           onChanged: (value) {
             carControlProvider.setFlashIntensity(value.round());

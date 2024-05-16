@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../services/websocket_service.dart';
 import '../widgets/flash_intensity_slider.dart';
+import '../widgets/stream_container_widget.dart';
 import '../widgets/stream_widget.dart';
 import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
@@ -111,30 +112,10 @@ class _CarControlScreenState extends State<CarControlScreen> {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            // Reserve space for the StreamWidget
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.4, // 40% of the height
-              child: Center(
-                child: Container(
-                  width: MediaQuery.of(context).size.width > 600 ? kWebWidth : kMobileWidth,
-                  height: MediaQuery.of(context).size.height * 0.4,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.blueAccent),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: _isStreaming
-                      ? _currentImage != null
-                      ? StreamWidget(currentImage: _currentImage!)
-                      : Center(child: CircularProgressIndicator())
-                      : Center(child: Text('Stream not started')),
-                ),
-              ),
-            ),
             SizedBox(height: 20),
             LayoutBuilder(
               builder: (context, constraints) {
-                return constraints.maxWidth > 600
+                return constraints.maxWidth > 800
                     ? _buildWebLayout()
                     : _buildMobileLayout();
               },
@@ -148,46 +129,57 @@ class _CarControlScreenState extends State<CarControlScreen> {
   Widget _buildMobileLayout() {
     return Column(
       children: [
-        GamepadWidget(),
-        SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            GamepadWidget(),
+            StreamContainer(
+              isStreaming: _isStreaming,
+              currentImage: _currentImage,
+            ),
+            ControlButtons(
+              onStartStream: _startStream,
+              onStopStream: _stopStream,
+            ),
+          ],
+        ),
         Text('Flash Intensity'),
         FlashIntensitySlider(),
-        SizedBox(height: 20),
-        LampWidget(),
-        SizedBox(height: 20),
-        ControlButtons(
-          onStartStream: _startStream,
-          onStopStream: _stopStream,
-        ),
       ],
     );
   }
 
   Widget _buildWebLayout() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: Column(
-            children: [
-              GamepadWidget(),
-              SizedBox(height: 20),
-              Text('Flash Intensity'),
-              FlashIntensitySlider(),
-            ],
-          ),
+        StreamContainer(
+          isStreaming: _isStreaming,
+          currentImage: _currentImage,
         ),
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              LampWidget(),
-              SizedBox(height: 20),
-              ControlButtons(
-                onStartStream: _startStream,
-                onStopStream: _stopStream,
+        SizedBox(height: 20),
+        Text('Flash Intensity'),
+        FlashIntensitySlider(),
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                children: [
+                  GamepadWidget(),
+                ],
               ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ControlButtons(
+                    onStartStream: _startStream,
+                    onStopStream: _stopStream,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
