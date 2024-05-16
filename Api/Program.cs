@@ -37,7 +37,7 @@ server.Start(socket =>
         try
         {
             var connecionPool = connectionManager.GetAllConnections();
-            if (connecionPool.Count() <= 1)
+            if (connecionPool.Count() <= 5)
             {
                 connectionManager.AddConnection(socket.ConnectionInfo.Id, socket);
             }
@@ -92,8 +92,12 @@ server.Start(socket =>
     {
         try
         {
-            socket.Send(data);
-            Console.WriteLine($"Received frame with length: {data.Length} on /stream");
+            var connections = connectionManager.GetAllConnections();
+            foreach (var conn in connections) 
+            {
+                conn.Connection.Send(data); 
+                Console.WriteLine($"Sent frame with length: {data.Length} to connection");
+            }
         }
         catch (AppException ex)
         {

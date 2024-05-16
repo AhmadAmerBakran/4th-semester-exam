@@ -1,1 +1,1 @@
-const WEBSOCKET_URL = 'ws://91.100.86.31:8181';
+const WEBSOCKET_URL = 'ws://192.168.0.165:8181';

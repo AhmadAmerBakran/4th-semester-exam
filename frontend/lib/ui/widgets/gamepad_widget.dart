@@ -8,8 +8,6 @@ class GamepadWidget extends StatefulWidget {
 }
 
 class _GamepadWidgetState extends State<GamepadWidget> {
-  double _flashIntensity = 0;
-
   @override
   Widget build(BuildContext context) {
     final carControlProvider = Provider.of<CarControlProvider>(context, listen: false);
@@ -82,87 +80,6 @@ class _GamepadWidgetState extends State<GamepadWidget> {
             ),
             child: Icon(Icons.arrow_downward, size: 40, color: Colors.white),
           ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/control', '7'),
-          child: Text('Auto Drive', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/led/control', 'on'),
-          child: Text('Turn On Lights', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.orange,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/led/control', 'off'),
-          child: Text('Turn Off Lights', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black12,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('car/led/control', 'auto'),
-          child: Text('Auto Light Mode', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.purple,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('cam/control', 'start'),
-          child: Text('Start Stream', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () => carControlProvider.sendCommand('cam/control', 'stop'),
-          child: Text('Stop Stream', style: TextStyle(fontSize: 18)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            elevation: 10,
-          ),
-        ),
-        SizedBox(height: 20),
-        Text('Flash Intensity'),
-        Slider(
-          value: _flashIntensity,
-          min: 0,
-          max: 100,
-          divisions: 100,
-          label: _flashIntensity.round().toString(),
-          onChanged: (value) {
-            setState(() {
-              _flashIntensity = value;
-              carControlProvider.sendCommand('cam/flash', value.round().toString());
-            });
-          },
         ),
       ],
     );
