@@ -20,11 +20,11 @@ class _CarControlScreenState extends State<CarControlScreen> {
   static const String streamUrl = "ws://192.168.0.165:8181/stream";
   late WebSocketService _webSocketService;
   ui.Image? _currentImage;
+  bool _isStreaming = false;
 
   @override
   void initState() {
     super.initState();
-    _connectToWebSocket();
   }
 
   void _onMessageReceived(String message) {
@@ -46,17 +46,24 @@ class _CarControlScreenState extends State<CarControlScreen> {
     return completer.future;
   }
 
-  void _connectToWebSocket() {
+  void _startStream() {
     _webSocketService = WebSocketService(
       streamUrl,
       _onMessageReceived,
       _onBinaryMessageReceived,
     );
+    setState(() {
+      _isStreaming = true;
+    });
     print("Connected to WebSocket");
   }
 
-  void _disconnectFromWebSocket() {
+  void _stopStream() {
     _webSocketService.close();
+    setState(() {
+      _isStreaming = false;
+      _currentImage = null;
+    });
     print("Disconnected from WebSocket");
   }
 
@@ -93,7 +100,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
             padding: const EdgeInsets.all(20.0),
             child: Column(
               children: [
-                if (_currentImage != null)
+                if (_isStreaming && _currentImage != null)
                   StreamWidget(currentImage: _currentImage!),
                 SizedBox(height: 20),
                 Expanded(
@@ -122,7 +129,10 @@ class _CarControlScreenState extends State<CarControlScreen> {
             children: [
               LampWidget(),
               SizedBox(height: 20),
-              ControlButtons(),
+              ControlButtons(
+                onStartStream: _startStream,
+                onStopStream: _stopStream,
+              ),
             ],
           ),
         ),
@@ -149,7 +159,10 @@ class _CarControlScreenState extends State<CarControlScreen> {
             children: [
               LampWidget(),
               SizedBox(height: 20),
-              ControlButtons(),
+              ControlButtons(
+                onStartStream: _startStream,
+                onStopStream: _stopStream,
+              ),
             ],
           ),
         ),

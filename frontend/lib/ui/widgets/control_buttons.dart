@@ -3,6 +3,11 @@ import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
 
 class ControlButtons extends StatelessWidget {
+  final VoidCallback onStartStream;
+  final VoidCallback onStopStream;
+
+  ControlButtons({required this.onStartStream, required this.onStopStream});
+
   @override
   Widget build(BuildContext context) {
     final carControlProvider = Provider.of<CarControlProvider>(context);
@@ -12,6 +17,7 @@ class ControlButtons extends StatelessWidget {
         ElevatedButton(
           onPressed: () {
             carControlProvider.startStream();
+            onStartStream();
           },
           child: Text('Start Stream'),
           style: ElevatedButton.styleFrom(
@@ -23,6 +29,7 @@ class ControlButtons extends StatelessWidget {
         ElevatedButton(
           onPressed: () {
             carControlProvider.stopStream();
+            onStopStream();
           },
           child: Text('Stop Stream'),
           style: ElevatedButton.styleFrom(
