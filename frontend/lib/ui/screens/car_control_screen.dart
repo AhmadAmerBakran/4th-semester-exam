@@ -10,6 +10,7 @@ import '../widgets/stream_widget.dart';
 import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
 import '../widgets/lamp_widget.dart';
+import '../../utils/constants.dart';
 
 class CarControlScreen extends StatefulWidget {
   @override
@@ -17,7 +18,7 @@ class CarControlScreen extends StatefulWidget {
 }
 
 class _CarControlScreenState extends State<CarControlScreen> {
-  static const String streamUrl = "ws://192.168.0.165:8181/stream";
+  static const String streamUrl = WEBSOCKET_URL;
   late WebSocketService _webSocketService;
   ui.Image? _currentImage;
   bool _isStreaming = false;
@@ -108,15 +109,21 @@ class _CarControlScreenState extends State<CarControlScreen> {
                 Container(
                   width: constraints.maxWidth,
                   height: constraints.maxHeight * 0.4, // 40% of the height
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.blueAccent),
-                    borderRadius: BorderRadius.circular(10),
+                  child: Center(
+                    child: Container(
+                      width: constraints.maxWidth > 600 ? kWebWidth : kMobileWidth,
+                      height: constraints.maxHeight * 0.4,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: _isStreaming
+                          ? _currentImage != null
+                          ? StreamWidget(currentImage: _currentImage!)
+                          : Center(child: CircularProgressIndicator())
+                          : Center(child: Text('Stream not started')),
+                    ),
                   ),
-                  child: _isStreaming
-                      ? _currentImage != null
-                      ? StreamWidget(currentImage: _currentImage!)
-                      : Center(child: CircularProgressIndicator())
-                      : Center(child: Text('Stream not started')),
                 ),
                 SizedBox(height: 20),
                 Expanded(
