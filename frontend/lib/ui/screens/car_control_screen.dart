@@ -1,7 +1,9 @@
 import 'dart:async';
-import 'dart:typed_data';
+import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../services/websocket_service.dart';
@@ -27,6 +29,12 @@ class _CarControlScreenState extends State<CarControlScreen> {
   void initState() {
     super.initState();
     print("CarControlScreen initialized");
+    _setOrientation();
+  }
+  void _setOrientation() {
+    if (!kIsWeb && Platform.isAndroid) {
+      SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
+    }
   }
 
   void _onMessageReceived(String message) {
@@ -190,6 +198,12 @@ class _CarControlScreenState extends State<CarControlScreen> {
     if (_isStreaming) {
       _webSocketService.close();
     }
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     super.dispose();
   }
 }
