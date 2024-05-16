@@ -25,6 +25,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
   @override
   void initState() {
     super.initState();
+    print("CarControlScreen initialized");
   }
 
   void _onMessageReceived(String message) {
@@ -32,6 +33,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
   }
 
   void _onBinaryMessageReceived(Uint8List message) async {
+    print("Received binary message of length: ${message.length}");
     final decodedImage = await _decodeImageFromList(message);
     setState(() {
       _currentImage = decodedImage;
@@ -47,6 +49,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
   }
 
   void _startStream() {
+    print("Starting stream...");
     _webSocketService = WebSocketService(
       streamUrl,
       _onMessageReceived,
@@ -59,6 +62,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
   }
 
   void _stopStream() {
+    print("Stopping stream...");
     _webSocketService.close();
     setState(() {
       _isStreaming = false;
@@ -102,6 +106,8 @@ class _CarControlScreenState extends State<CarControlScreen> {
               children: [
                 if (_isStreaming && _currentImage != null)
                   StreamWidget(currentImage: _currentImage!),
+                if (_isStreaming && _currentImage == null)
+                  Center(child: CircularProgressIndicator()), // Show a loader until the first frame is received
                 SizedBox(height: 20),
                 Expanded(
                   child: constraints.maxWidth > 600
@@ -172,7 +178,9 @@ class _CarControlScreenState extends State<CarControlScreen> {
 
   @override
   void dispose() {
-    _webSocketService.close();
+    if (_isStreaming) {
+      _webSocketService.close();
+    }
     super.dispose();
   }
 }
