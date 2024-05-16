@@ -17,12 +17,22 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(
-          create: (_) => CarControlProvider(
-            webSocketService: WebSocketService(WEBSOCKET_URL, (message) {
-              // Handle WebSocket messages here
-              print('WebSocket message: $message');
-            }),
+        ChangeNotifierProvider(create: (context) => CarControlProvider(
+            webSocketService: WebSocketService(
+              WEBSOCKET_URL,
+                  (message) {
+                // Handle text WebSocket messages here
+                print('WebSocket message: $message');
+              },
+                  (binaryMessage) {
+                // Handle binary WebSocket messages here
+                // Ensure the context is properly obtained here
+              /*  WidgetsBinding.instance?.addPostFrameCallback((_) {
+                  Provider.of<CarControlProvider>(context, listen: false)
+                      .setVideoFrame(binaryMessage);
+                });*/
+              },
+            ),
           ),
         ),
       ],
