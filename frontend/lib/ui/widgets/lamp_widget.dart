@@ -25,19 +25,23 @@ class LampWidget extends StatelessWidget {
         break;
     }
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(
-          Icons.lightbulb,
-          size: 100,
-          color: lampColor,
-        ),
-        Text(
-          label,
-          style: TextStyle(fontSize: 18),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.lightbulb,
+              size: constraints.maxWidth > 400 ? 120 : 100,
+              color: lampColor,
+            ),
+            Text(
+              label,
+              style: TextStyle(fontSize: constraints.maxWidth > 400 ? 22 : 18),
+            ),
+          ],
+        );
+      },
     );
   }
 }
