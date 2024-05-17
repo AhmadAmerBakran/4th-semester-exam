@@ -29,10 +29,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     _controller.dispose();
 
     SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
+      //DeviceOrientation.portraitUp,
+      //DeviceOrientation.portraitDown,
       DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
+      //DeviceOrientation.landscapeRight,
     ]);
 
     super.dispose();
