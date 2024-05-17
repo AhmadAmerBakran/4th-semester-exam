@@ -11,4 +11,5 @@ public interface IWebSocketConnectionManager
     IEnumerable<WebSocketWithMetaData> GetAllConnections();
     bool IsAuthenticated(IWebSocketConnection socket);
     bool HasMetadata(Guid id);
+    void ResetConnection(Guid id);
 }

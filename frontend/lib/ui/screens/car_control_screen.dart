@@ -84,6 +84,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       appBar: AppBar(
         title: Text('Car Control'),
         actions: [
