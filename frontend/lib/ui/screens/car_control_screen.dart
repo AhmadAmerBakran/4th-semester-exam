@@ -30,6 +30,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
     print("CarControlScreen initialized");
     _setOrientation();
   }
+
   void _setOrientation() {
     if (!kIsWeb && Platform.isAndroid) {
       SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
@@ -106,17 +107,12 @@ class _CarControlScreenState extends State<CarControlScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          SizedBox(height: 20),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return constraints.maxWidth > 800
-                  ? _buildWebLayout()
-                  : _buildMobileLayout();
-            },
-          ),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return constraints.maxWidth > 800
+              ? _buildWebLayout()
+              : _buildMobileLayout();
+        },
       ),
     );
   }
@@ -124,19 +120,25 @@ class _CarControlScreenState extends State<CarControlScreen> {
   Widget _buildMobileLayout() {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            GamepadWidget(),
-            StreamContainer(
-              isStreaming: _isStreaming,
-              currentImage: _currentImage,
-            ),
-            ControlButtons(
-              onStartStream: _startStream,
-              onStopStream: _stopStream,
-            ),
-          ],
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(child: GamepadWidget()),
+              Expanded(
+                child: StreamContainer(
+                  isStreaming: _isStreaming,
+                  currentImage: _currentImage,
+                ),
+              ),
+              Expanded(
+                child: ControlButtons(
+                  onStartStream: _startStream,
+                  onStopStream: _stopStream,
+                ),
+              ),
+            ],
+          ),
         ),
         FlashIntensitySlider(),
       ],
@@ -146,33 +148,27 @@ class _CarControlScreenState extends State<CarControlScreen> {
   Widget _buildWebLayout() {
     return Column(
       children: [
-        StreamContainer(
-          isStreaming: _isStreaming,
-          currentImage: _currentImage,
+        Expanded(
+          child: StreamContainer(
+            isStreaming: _isStreaming,
+            currentImage: _currentImage,
+          ),
         ),
-        SizedBox(height: 20),
         FlashIntensitySlider(),
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                children: [
-                  GamepadWidget(),
-                ],
+        Expanded(
+          child: Row(
+            children: [
+              Expanded(
+                child: GamepadWidget(),
               ),
-            ),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ControlButtons(
-                    onStartStream: _startStream,
-                    onStopStream: _stopStream,
-                  ),
-                ],
+              Expanded(
+                child: ControlButtons(
+                  onStartStream: _startStream,
+                  onStopStream: _stopStream,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
