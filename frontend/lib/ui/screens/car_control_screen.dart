@@ -9,10 +9,8 @@ import '../../providers/car_control_provider.dart';
 import '../../services/websocket_service.dart';
 import '../widgets/flash_intensity_slider.dart';
 import '../widgets/stream_container_widget.dart';
-import '../widgets/stream_widget.dart';
 import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
-import '../widgets/lamp_widget.dart';
 import '../../utils/constants.dart';
 
 class CarControlScreen extends StatefulWidget {
@@ -108,20 +106,17 @@ class _CarControlScreenState extends State<CarControlScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            SizedBox(height: 20),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                return constraints.maxWidth > 800
-                    ? _buildWebLayout()
-                    : _buildMobileLayout();
-              },
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          SizedBox(height: 20),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return constraints.maxWidth > 800
+                  ? _buildWebLayout()
+                  : _buildMobileLayout();
+            },
+          ),
+        ],
       ),
     );
   }
@@ -143,7 +138,6 @@ class _CarControlScreenState extends State<CarControlScreen> {
             ),
           ],
         ),
-        Text('Flash Intensity'),
         FlashIntensitySlider(),
       ],
     );
@@ -157,7 +151,6 @@ class _CarControlScreenState extends State<CarControlScreen> {
           currentImage: _currentImage,
         ),
         SizedBox(height: 20),
-        Text('Flash Intensity'),
         FlashIntensitySlider(),
         Row(
           children: [
