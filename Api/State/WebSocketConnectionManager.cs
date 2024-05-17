@@ -111,11 +111,29 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
         if (_connections.ContainsKey(id))
         {
             _connections[id].Username = null; // Reset the username or other metadata
+            _connections[id].StopDisconnectTimer();
+
             Console.WriteLine($"Connection metadata reset for GUID: {id}");
         }
         else
         {
             Console.WriteLine($"Attempted to reset metadata for non-existent connection with GUID: {id}");
+        }
+    }
+    
+    public void StartDisconnectTimer(Guid id, Action disconnectAction, int timeoutMilliseconds)
+    {
+        if (_connections.ContainsKey(id))
+        {
+            _connections[id].StartDisconnectTimer(disconnectAction, timeoutMilliseconds);
+        }
+    }
+    
+    public void StopDisconnectTimer(Guid id)
+    {
+        if (_connections.ContainsKey(id))
+        {
+            _connections[id].StopDisconnectTimer();
         }
     }
 

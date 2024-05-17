@@ -5,7 +5,7 @@ namespace Core.Interfaces;
 public interface ICarLogRepository
 {
     Task<IEnumerable<User>> GetAllUsersAsync();
-    Task<User> GetUserByIdAsync(int id);
+    Task<User> GetUserByIdAsync(Guid id);
     Task<User> AddUserAsync(Guid userId, string nickname);
     Task<IEnumerable<CarNotification>> GetNotificationsByUserIdAsync(int userId);
     Task<CarNotification> AddNotificationAsync(Guid userId, string fromTopic, string toTopic, string message);

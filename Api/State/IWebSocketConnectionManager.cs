@@ -12,4 +12,6 @@ public interface IWebSocketConnectionManager
     bool IsAuthenticated(IWebSocketConnection socket);
     bool HasMetadata(Guid id);
     void ResetConnection(Guid id);
+    void StartDisconnectTimer(Guid id, Action disconnectAction, int timeoutMilliseconds);
+    void StopDisconnectTimer(Guid id);
 }

@@ -9,6 +9,7 @@ public class CarControlService : ICarControlService
 {
         private readonly IMQTTClientManager _mqttClientManager;
         private readonly ICarLogRepository _carLogRepository;
+        private bool _isSubscribed = false;
         public CarControlService(IMQTTClientManager mqttClientManager, ICarLogRepository carLogRepository)
         {
             _mqttClientManager = mqttClientManager;
@@ -54,7 +55,11 @@ public class CarControlService : ICarControlService
             {
                 await _mqttClientManager.ConnectAsync();
                 _mqttClientManager.InitializeSubscriptions();
-                _mqttClientManager.MessageReceived += HandleReceivedMessage;
+                if (!_isSubscribed)
+                {
+                    _mqttClientManager.MessageReceived += HandleReceivedMessage;
+                    _isSubscribed = true;
+                }
             }
             catch (AppException ex)
             {
@@ -70,6 +75,11 @@ public class CarControlService : ICarControlService
         {
             try
             {
+                if (_isSubscribed)
+                {
+                    _mqttClientManager.MessageReceived -= HandleReceivedMessage;
+                    _isSubscribed = false;
+                }
                 await _mqttClientManager.DisconnectAsync();
             }
             catch (AppException ex)
@@ -108,7 +118,7 @@ public class CarControlService : ICarControlService
             }
             catch (AppException ex)
             {
-                throw; // Rethrow custom exceptions as is
+                throw;
             }
             catch (Exception ex)
             {

@@ -25,11 +25,11 @@ public class ClientWantsToSignOut : BaseEventHandler<ClientWantsToSignOutDto>
         {
             var connectionId = socket.ConnectionInfo.Id;
             _webSocketConnectionManager.ResetConnection(connectionId); // Reset metadata
-            await _carControlService.CloseConnection();
-            /*socket.Send(JsonSerializer.Serialize(new ServerClientSignOut
+            _webSocketConnectionManager.StartDisconnectTimer(connectionId, () =>
             {
-                Message = "You have signed out successfully."
-            }));*/
+                _webSocketConnectionManager.RemoveConnection(connectionId);
+                socket.Close();
+            }, 30000);
             Console.WriteLine("User signed out, but connection remains open.");
         }
         catch (AppException ex)

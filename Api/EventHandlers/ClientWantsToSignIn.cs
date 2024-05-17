@@ -25,15 +25,7 @@ public class ClientWantsToSignIn : BaseEventHandler<ClientWantsToSignInDto>
     {
         try
         {
-            var connectionId = socket.ConnectionInfo.Id;
-            if (connectionId == Guid.Empty)
-            {
-                // Handle the case where the connection ID is missing
-                connectionId = Guid.NewGuid();
-                _webSocketConnectionManager.AddConnection(connectionId, socket);
-            }
-
-            var metaData = _webSocketConnectionManager.GetConnection(connectionId);
+            var metaData = _webSocketConnectionManager.GetConnection(socket.ConnectionInfo.Id);
             if (metaData == null)
             {
                 socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
@@ -51,7 +43,8 @@ public class ClientWantsToSignIn : BaseEventHandler<ClientWantsToSignInDto>
                 Message = "You have connected as " + dto.NickName
             }));
 
-            await _carControlService.AddUserAsync(connectionId, dto.NickName);
+            await _carControlService.AddUserAsync(socket.ConnectionInfo.Id, dto.NickName);
+            _webSocketConnectionManager.StopDisconnectTimer(socket.ConnectionInfo.Id);
         }
         catch (AppException ex)
         {
