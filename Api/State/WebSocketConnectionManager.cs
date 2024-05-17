@@ -105,4 +105,18 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
             throw new AppException("An error occurred while checking metadata. Please try again later.");
         }
     }
+    
+    public void ResetConnection(Guid id)
+    {
+        if (_connections.ContainsKey(id))
+        {
+            _connections[id].Username = null; // Reset the username or other metadata
+            Console.WriteLine($"Connection metadata reset for GUID: {id}");
+        }
+        else
+        {
+            Console.WriteLine($"Attempted to reset metadata for non-existent connection with GUID: {id}");
+        }
+    }
+
 }

@@ -25,24 +25,33 @@ public class ClientWantsToSignIn : BaseEventHandler<ClientWantsToSignInDto>
     {
         try
         {
-            var metaData = _webSocketConnectionManager.GetConnection(socket.ConnectionInfo.Id);
+            var connectionId = socket.ConnectionInfo.Id;
+            if (connectionId == Guid.Empty)
+            {
+                // Handle the case where the connection ID is missing
+                connectionId = Guid.NewGuid();
+                _webSocketConnectionManager.AddConnection(connectionId, socket);
+            }
 
+            var metaData = _webSocketConnectionManager.GetConnection(connectionId);
             if (metaData == null)
-            { 
+            {
                 socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto
                 {
                     ErrorMessage = "Failed to sign in due to missing connection metadata."
                 }));
                 return;
             }
+
             await _carControlService.OpenConnection();
 
             metaData.Username = dto.NickName;
-            socket.Send(JsonSerializer.Serialize(new ServerClientSignIn()
+            socket.Send(JsonSerializer.Serialize(new ServerClientSignIn
             {
                 Message = "You have connected as " + dto.NickName
             }));
-            _carControlService.AddUserAsync(socket.ConnectionInfo.Id, dto.NickName);
+
+            await _carControlService.AddUserAsync(connectionId, dto.NickName);
         }
         catch (AppException ex)
         {
@@ -64,4 +73,5 @@ public class ClientWantsToSignIn : BaseEventHandler<ClientWantsToSignInDto>
             Console.WriteLine(ex.InnerException?.Message);
         }
     }
+
 }
