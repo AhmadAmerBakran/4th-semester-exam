@@ -9,7 +9,7 @@ class WebSocketService {
   final Function(String) _onMessageReceived;
   final Function(Uint8List) _onBinaryMessageReceived;
   final Queue<Uint8List> _frameBuffer = Queue<Uint8List>();
-  final int _bufferSize = 5; // Adjust the buffer size as needed
+  final int _bufferSize = 5;
   late Timer _frameTimer;
 
   WebSocketService(String url, this._onMessageReceived, this._onBinaryMessageReceived) {

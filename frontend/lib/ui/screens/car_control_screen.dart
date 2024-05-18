@@ -4,9 +4,13 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../services/websocket_service.dart';
+import '../widgets/Aanimated_background.dart';
+import '../widgets/animated_app_bar.dart';
 import '../widgets/flash_intensity_slider.dart';
 import '../widgets/stream_container_widget.dart';
 import '../widgets/control_buttons.dart';
@@ -82,38 +86,51 @@ class _CarControlScreenState extends State<CarControlScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
     return Scaffold(
-
-      appBar: AppBar(
-        title: Text('Car Control'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.notifications),
-            onPressed: () {
-              context.read<CarControlProvider>().receiveNotifications();
-            },
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: AnimatedBackground(),
           ),
-          IconButton(
-            icon: Icon(Icons.history),
-            onPressed: () {
-              context.read<CarControlProvider>().getCarLog();
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.exit_to_app),
-            onPressed: () {
-              context.read<CarControlProvider>().signOut();
-              Navigator.pushReplacementNamed(context, '/');
-            },
+          Column(
+            children: [
+              AnimatedAppBar(
+                title: userProvider.user?.nickname ?? 'Car Control',
+                actions: [
+                  IconButton(
+                    icon: Icon(Icons.notifications),
+                    onPressed: () {
+                      context.read<CarControlProvider>().receiveNotifications();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.history),
+                    onPressed: () {
+                      context.read<CarControlProvider>().getCarLog();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.exit_to_app),
+                    onPressed: () {
+                      context.read<CarControlProvider>().signOut();
+                      Navigator.pushReplacementNamed(context, '/');
+                    },
+                  ),
+                ],
+              ),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return constraints.maxWidth > 800
+                        ? _buildWebLayout()
+                        : _buildMobileLayout();
+                  },
+                ),
+              ),
+            ],
           ),
         ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return constraints.maxWidth > 800
-              ? _buildWebLayout()
-              : _buildMobileLayout();
-        },
       ),
     );
   }

@@ -3,9 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_screen_recording/flutter_screen_recording.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:path/path.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:universal_html/html.dart' as html;
 import 'dart:ui' as ui;
@@ -23,7 +21,6 @@ class StreamContainer extends StatefulWidget {
 
 class _StreamContainerState extends State<StreamContainer> {
   final GlobalKey repaintBoundaryKey = GlobalKey();
-  bool _isRecording = false;
 
   @override
   void initState() {
@@ -31,13 +28,16 @@ class _StreamContainerState extends State<StreamContainer> {
     _requestPermissions();
   }
 
+  /* We've found out that there is no need for external storage permission write
+  to be able to store screenshots in gallery for android 12 and above,
+  but we left it as it is as an example for requesting a permission*/
   Future<void> _requestPermissions() async {
-    await [
-      Permission.storage,
-      Permission.microphone,
-      Permission.camera,
-      Permission.manageExternalStorage,
-    ].request();
+    if (!kIsWeb && Platform.isAndroid) {
+      await [
+        Permission.storage,
+        Permission.manageExternalStorage,
+      ].request();
+    }
   }
 
   Future<void> _takeScreenshot() async {
@@ -65,41 +65,6 @@ class _StreamContainerState extends State<StreamContainer> {
     }
   }
 
-  Future<void> _startRecording() async {
-    try {
-      if (!kIsWeb) {
-        bool started = await FlutterScreenRecording.startRecordScreen("recording");
-        setState(() {
-          _isRecording = started;
-        });
-        print("Recording started: $started");
-      } else {
-        print("Recording is not supported on web.");
-      }
-    } catch (e) {
-      print("Error starting recording: $e");
-    }
-  }
-
-  Future<void> _stopRecording() async {
-    try {
-      if (!kIsWeb) {
-        String path = await FlutterScreenRecording.stopRecordScreen;
-        setState(() {
-          _isRecording = false;
-        });
-        print("Recording saved to: $path");
-
-        if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-          Process.run('explorer', [dirname(path)]);
-        }
-      } else {
-        print("Recording is not supported on web.");
-      }
-    } catch (e) {
-      print("Error stopping recording: $e");
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,17 +95,6 @@ class _StreamContainerState extends State<StreamContainer> {
               onPressed: _takeScreenshot,
               tooltip: 'Take Screenshot',
               color: Colors.blue,
-              iconSize: 30.0,
-            ),
-          ),
-          Positioned(
-            right: 16,
-            top: 16,
-            child: IconButton(
-              icon: Icon(_isRecording ? Icons.stop : Icons.videocam),
-              onPressed: _isRecording ? _stopRecording : _startRecording,
-              tooltip: _isRecording ? 'Stop Recording' : 'Start Recording',
-              color: Colors.red,
               iconSize: 30.0,
             ),
           ),

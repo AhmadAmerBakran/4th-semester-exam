@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../models/user.dart';
 import '../../providers/car_control_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
+import '../../providers/user_provider.dart';
 
 class LoginForm extends StatelessWidget {
   final TextEditingController nicknameController;
@@ -16,8 +20,10 @@ class LoginForm extends StatelessWidget {
           width: MediaQuery.of(context).size.width > 600 ? 400 : MediaQuery.of(context).size.width * 0.8,
           child: TextField(
             controller: nicknameController,
+            style: GoogleFonts.rowdies(),
             decoration: InputDecoration(
               labelText: 'Nickname',
+              labelStyle: GoogleFonts.rowdies(),
               border: OutlineInputBorder(),
               fillColor: Colors.white.withOpacity(0.8),
               filled: true,
@@ -30,13 +36,15 @@ class LoginForm extends StatelessWidget {
             final nickname = nicknameController.text;
             if (nickname.isNotEmpty) {
               FocusScope.of(context).unfocus();
+              final user = User(nickname: nickname);
               Future.delayed(Duration(milliseconds: 400), () {
-                Provider.of<CarControlProvider>(context, listen: false).signIn(nickname);
+                Provider.of<UserProvider>(context, listen: false).setUser(user);
+                Provider.of<CarControlProvider>(context, listen: false).signIn(user);
                 Navigator.pushReplacementNamed(context, '/carControl');
               });
             }
           },
-          child: Text('Start'),
+          child: Text('Start', style: GoogleFonts.rowdies()),
         ).animate().slide(duration: 800.ms, begin: Offset(1, 0), end: Offset(0, 0)).then().shimmer(),
       ],
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
+import 'styled_button_widget.dart';
 
 class GamepadWidget extends StatefulWidget {
   @override
@@ -17,49 +18,63 @@ class _GamepadWidgetState extends State<GamepadWidget> {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            GestureDetector(
-              onTapDown: (_) => carControlProvider.sendCommand('car/control', '1'),
-              onTapUp: (_) => carControlProvider.sendCommand('car/control', '0'),
-              child: _buildButton(constraints, Icons.arrow_upward),
+            CustomIconButton(
+              icon: Icons.arrow_upward,
+              onTap: () {},
+              onTapDown: (_) {
+                carControlProvider.sendCommand('car/control', '1');
+              },
+              onTapUp: (_) {
+                carControlProvider.sendCommand('car/control', '0');
+              },
+              color: Colors.blue,
+              size: 60,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onTapDown: (_) => carControlProvider.sendCommand('car/control', '6'),
-                  onTapUp: (_) => carControlProvider.sendCommand('car/control', '0'),
-                  child: _buildButton(constraints, Icons.arrow_back),
+                CustomIconButton(
+                  icon: Icons.arrow_back,
+                  onTap: () {},
+                  onTapDown: (_) {
+                    carControlProvider.sendCommand('car/control', '6');
+                  },
+                  onTapUp: (_) {
+                    carControlProvider.sendCommand('car/control', '0');
+                  },
+                  color: Colors.blue,
+                  size: 60,
                 ),
                 SizedBox(width: 20),
-                GestureDetector(
-                  onTapDown: (_) => carControlProvider.sendCommand('car/control', '5'),
-                  onTapUp: (_) => carControlProvider.sendCommand('car/control', '0'),
-                  child: _buildButton(constraints, Icons.arrow_forward),
+                CustomIconButton(
+                  icon: Icons.arrow_forward,
+                  onTap: () {},
+                  onTapDown: (_) {
+                    carControlProvider.sendCommand('car/control', '5');
+                  },
+                  onTapUp: (_) {
+                    carControlProvider.sendCommand('car/control', '0');
+                  },
+                  color: Colors.blue,
+                  size: 60,
                 ),
               ],
             ),
-            GestureDetector(
-              onTapDown: (_) => carControlProvider.sendCommand('car/control', '2'),
-              onTapUp: (_) => carControlProvider.sendCommand('car/control', '0'),
-              child: _buildButton(constraints, Icons.arrow_downward),
+            CustomIconButton(
+              icon: Icons.arrow_downward,
+              onTap: () {},
+              onTapDown: (_) {
+                carControlProvider.sendCommand('car/control', '2');
+              },
+              onTapUp: (_) {
+                carControlProvider.sendCommand('car/control', '0');
+              },
+              color: Colors.blue,
+              size: 60,
             ),
           ],
         );
       },
-    );
-  }
-
-  Widget _buildButton(BoxConstraints constraints, IconData icon) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 200),
-      height: constraints.maxWidth > 400 ? 60 : 60,
-      width: constraints.maxWidth > 400 ? 60 : 60,
-      decoration: BoxDecoration(
-        color: Colors.blue,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
-      ),
-      child: Icon(icon, size: 40, color: Colors.white),
     );
   }
 }
