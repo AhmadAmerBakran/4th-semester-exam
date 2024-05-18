@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using Core.Exceptions;
 using Core.Interfaces;
-using Core.Models;
 
 namespace Service;
 
