@@ -3,9 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:flutter_screen_recording/flutter_screen_recording.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:universal_html/html.dart' as html;
@@ -25,21 +24,11 @@ class StreamContainer extends StatefulWidget {
 class _StreamContainerState extends State<StreamContainer> {
   final GlobalKey repaintBoundaryKey = GlobalKey();
   bool _isRecording = false;
-  final FlutterFFmpeg _flutterFFmpeg = FlutterFFmpeg();
-  String? _videoFilePath;
-  late Directory _appDir;
 
   @override
   void initState() {
     super.initState();
-    _initialize();
     _requestPermissions();
-  }
-
-  Future<void> _initialize() async {
-    if (!kIsWeb) {
-      _appDir = await getApplicationDocumentsDirectory();
-    }
   }
 
   Future<void> _requestPermissions() async {
@@ -79,23 +68,11 @@ class _StreamContainerState extends State<StreamContainer> {
   Future<void> _startRecording() async {
     try {
       if (!kIsWeb) {
-        _videoFilePath = join(_appDir.path, "recorded_video.mp4");
-        // Add FFmpeg command to start recording
-        final arguments = [
-          "-f", "x11grab",
-          "-r", "30",
-          "-s", "${widget.currentImage!.width}x${widget.currentImage!.height}",
-          "-i", ":0.0",
-          "-vcodec", "libx264",
-          "-preset", "ultrafast",
-          _videoFilePath!
-        ];
-
-        _flutterFFmpeg.executeWithArguments(arguments).then((rc) => print("FFmpeg process exited with rc $rc"));
-
+        bool started = await FlutterScreenRecording.startRecordScreen("recording");
         setState(() {
-          _isRecording = true;
+          _isRecording = started;
         });
+        print("Recording started: $started");
       } else {
         print("Recording is not supported on web.");
       }
@@ -107,14 +84,14 @@ class _StreamContainerState extends State<StreamContainer> {
   Future<void> _stopRecording() async {
     try {
       if (!kIsWeb) {
-        _flutterFFmpeg.cancel();
+        String path = await FlutterScreenRecording.stopRecordScreen;
         setState(() {
           _isRecording = false;
         });
-        print("Recording saved to $_videoFilePath");
+        print("Recording saved to: $path");
 
         if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-          Process.run('explorer', [dirname(_videoFilePath!)]);
+          Process.run('explorer', [dirname(path)]);
         }
       } else {
         print("Recording is not supported on web.");
