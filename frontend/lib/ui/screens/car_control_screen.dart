@@ -10,6 +10,7 @@ import '../../providers/car_control_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../services/websocket_service.dart';
 import '../widgets/Aanimated_background.dart';
+import '../widgets/animated_app_bar.dart';
 import '../widgets/flash_intensity_slider.dart';
 import '../widgets/stream_container_widget.dart';
 import '../widgets/control_buttons.dart';
@@ -94,11 +95,8 @@ class _CarControlScreenState extends State<CarControlScreen> {
           ),
           Column(
             children: [
-              AppBar(
-                title: Text(
-                  userProvider.user?.nickname ?? 'Car Control',
-                  style: GoogleFonts.rowdies(),
-                ),
+              AnimatedAppBar(
+                title: userProvider.user?.nickname ?? 'Car Control',
                 actions: [
                   IconButton(
                     icon: Icon(Icons.notifications),
