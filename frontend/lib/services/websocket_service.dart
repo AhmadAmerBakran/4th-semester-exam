@@ -77,6 +77,6 @@ class WebSocketService {
 
   void close() {
     _frameTimer.cancel();
-    _channel.sink.close();
+    //_channel.sink.close();
   }
 }

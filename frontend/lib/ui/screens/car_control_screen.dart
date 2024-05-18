@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../providers/user_provider.dart';
@@ -12,6 +11,7 @@ import '../../services/websocket_service.dart';
 import '../widgets/Aanimated_background.dart';
 import '../widgets/animated_app_bar.dart';
 import '../widgets/flash_intensity_slider.dart';
+import '../widgets/notification_list_widget.dart';
 import '../widgets/stream_container_widget.dart';
 import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
@@ -33,6 +33,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
     super.initState();
     print("CarControlScreen initialized");
     _setOrientation();
+    _initWebSocket();
   }
 
   void _setOrientation() {
@@ -43,6 +44,9 @@ class _CarControlScreenState extends State<CarControlScreen> {
 
   void _onMessageReceived(String message) {
     print("Received text message: $message");
+    if (message.startsWith("Notification on")) {
+      context.read<CarControlProvider>().addNotification(message);
+    }
   }
 
   void _onBinaryMessageReceived(Uint8List message) async {
@@ -61,13 +65,17 @@ class _CarControlScreenState extends State<CarControlScreen> {
     return completer.future;
   }
 
-  void _startStream() {
-    print("Starting stream...");
+  void _initWebSocket() {
     _webSocketService = WebSocketService(
       streamUrl,
       _onMessageReceived,
       _onBinaryMessageReceived,
     );
+    context.read<CarControlProvider>().receiveNotifications();
+  }
+
+  void _startStream() {
+    print("Starting stream...");
     setState(() {
       _isStreaming = true;
     });
@@ -98,10 +106,48 @@ class _CarControlScreenState extends State<CarControlScreen> {
               AnimatedAppBar(
                 title: userProvider.user?.nickname ?? 'Car Control',
                 actions: [
-                  IconButton(
-                    icon: Icon(Icons.notifications),
-                    onPressed: () {
-                      context.read<CarControlProvider>().receiveNotifications();
+                  Consumer<CarControlProvider>(
+                    builder: (context, carControlProvider, child) {
+                      return Stack(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.notifications),
+                            onPressed: () {
+                              context.read<CarControlProvider>().clearUnreadCount();
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) => NotificationList(),
+                              );
+                            },
+                          ),
+                          if (carControlProvider.unreadCount > 0)
+                            Positioned(
+                              right: 8,
+                              top: 8,
+                              child: Container(
+                                padding: EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                constraints: BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${carControlProvider.unreadCount}',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
                     },
                   ),
                   IconButton(
@@ -134,6 +180,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
       ),
     );
   }
+
 
   Widget _buildMobileLayout() {
     return Column(
