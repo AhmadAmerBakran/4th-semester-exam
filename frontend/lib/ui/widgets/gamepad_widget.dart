@@ -52,8 +52,8 @@ class _GamepadWidgetState extends State<GamepadWidget> {
   Widget _buildButton(BoxConstraints constraints, IconData icon) {
     return AnimatedContainer(
       duration: Duration(milliseconds: 200),
-      height: constraints.maxWidth > 400 ? 80 : 60,
-      width: constraints.maxWidth > 400 ? 80 : 60,
+      height: constraints.maxWidth > 400 ? 60 : 60,
+      width: constraints.maxWidth > 400 ? 60 : 60,
       decoration: BoxDecoration(
         color: Colors.blue,
         borderRadius: BorderRadius.circular(30),

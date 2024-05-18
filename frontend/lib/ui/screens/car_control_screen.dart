@@ -1,15 +1,16 @@
 import 'dart:async';
-import 'dart:typed_data';
+import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../services/websocket_service.dart';
 import '../widgets/flash_intensity_slider.dart';
-import '../widgets/stream_widget.dart';
+import '../widgets/stream_container_widget.dart';
 import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
-import '../widgets/lamp_widget.dart';
 import '../../utils/constants.dart';
 
 class CarControlScreen extends StatefulWidget {
@@ -27,6 +28,13 @@ class _CarControlScreenState extends State<CarControlScreen> {
   void initState() {
     super.initState();
     print("CarControlScreen initialized");
+    _setOrientation();
+  }
+
+  void _setOrientation() {
+    if (!kIsWeb && Platform.isAndroid) {
+      SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
+    }
   }
 
   void _onMessageReceived(String message) {
@@ -75,6 +83,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       appBar: AppBar(
         title: Text('Car Control'),
         actions: [
@@ -101,39 +110,9 @@ class _CarControlScreenState extends State<CarControlScreen> {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          return Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                // Reserve space for the StreamWidget
-                Container(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight * 0.4, // 40% of the height
-                  child: Center(
-                    child: Container(
-                      width: constraints.maxWidth > 600 ? kWebWidth : kMobileWidth,
-                      height: constraints.maxHeight * 0.4,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: _isStreaming
-                          ? _currentImage != null
-                          ? StreamWidget(currentImage: _currentImage!)
-                          : Center(child: CircularProgressIndicator())
-                          : Center(child: Text('Stream not started')),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                Expanded(
-                  child: constraints.maxWidth > 600
-                      ? _buildWebLayout()
-                      : _buildMobileLayout(),
-                ),
-              ],
-            ),
-          );
+          return constraints.maxWidth > 800
+              ? _buildWebLayout()
+              : _buildMobileLayout();
         },
       ),
     );
@@ -142,49 +121,52 @@ class _CarControlScreenState extends State<CarControlScreen> {
   Widget _buildMobileLayout() {
     return Column(
       children: [
-        GamepadWidget(),
-        SizedBox(height: 20),
-        Text('Flash Intensity'),
-        FlashIntensitySlider(),
         Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              LampWidget(),
-              SizedBox(height: 20),
-              ControlButtons(
-                onStartStream: _startStream,
-                onStopStream: _stopStream,
+              Expanded(child: GamepadWidget()),
+              Expanded(
+                child: StreamContainer(
+                  isStreaming: _isStreaming,
+                  currentImage: _currentImage,
+                ),
+              ),
+              Expanded(
+                child: ControlButtons(
+                  onStartStream: _startStream,
+                  onStopStream: _stopStream,
+                ),
               ),
             ],
           ),
         ),
+        FlashIntensitySlider(),
       ],
     );
   }
 
   Widget _buildWebLayout() {
-    return Row(
+    return Column(
       children: [
         Expanded(
-          child: Column(
-            children: [
-              GamepadWidget(),
-              SizedBox(height: 20),
-              Text('Flash Intensity'),
-              FlashIntensitySlider(),
-            ],
+          child: StreamContainer(
+            isStreaming: _isStreaming,
+            currentImage: _currentImage,
           ),
         ),
+        FlashIntensitySlider(),
         Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
             children: [
-              LampWidget(),
-              SizedBox(height: 20),
-              ControlButtons(
-                onStartStream: _startStream,
-                onStopStream: _stopStream,
+              Expanded(
+                child: GamepadWidget(),
+              ),
+              Expanded(
+                child: ControlButtons(
+                  onStartStream: _startStream,
+                  onStopStream: _stopStream,
+                ),
               ),
             ],
           ),
@@ -198,6 +180,12 @@ class _CarControlScreenState extends State<CarControlScreen> {
     if (_isStreaming) {
       _webSocketService.close();
     }
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     super.dispose();
   }
 }

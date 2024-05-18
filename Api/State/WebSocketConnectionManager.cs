@@ -4,23 +4,33 @@ using Fleck;
 
 namespace Api.State;
 
-
 public class WebSocketConnectionManager : IWebSocketConnectionManager
 {
     private readonly Dictionary<Guid, WebSocketWithMetaData> _connections = new();
+    private readonly ILogger<WebSocketConnectionManager> _logger;
+    private readonly ILoggerFactory _loggerFactory;
+    
+    public WebSocketConnectionManager(ILogger<WebSocketConnectionManager> logger, ILoggerFactory loggerFactory)
+    {
+        _logger = logger;
+        _loggerFactory = loggerFactory;
+
+    }
 
     public void AddConnection(Guid id, IWebSocketConnection socket)
     {
         try
         {
+            var logger = _loggerFactory.CreateLogger<WebSocketWithMetaData>();
+
             if (!_connections.ContainsKey(id))
             {
-                _connections[id] = new WebSocketWithMetaData(socket);
-                Console.WriteLine($"New connection added with GUID: {id}");
+                _connections[id] = new WebSocketWithMetaData(socket, logger);
+                _logger.LogInformation($"New connection added with GUID: {id}");
             }
             else
             {
-                Console.WriteLine($"Connection with GUID: {id} already exists. Updating socket reference.");
+                _logger.LogInformation($"Connection with GUID: {id} already exists. Updating socket reference.");
                 _connections[id].Connection = socket;
             }
         }
@@ -38,11 +48,11 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
             {
                 _connections[id].Connection.Close();
                 _connections.Remove(id);
-                Console.WriteLine($"Connection and associated metadata removed: {id}");
+                _logger.LogInformation($"Connection and associated metadata removed: {id}");
             }
             else
             {
-                Console.WriteLine($"Attempted to remove non-existent connection with GUID: {id}");
+                _logger.LogWarning($"Attempted to remove non-existent connection with GUID: {id}");
             }
         }
         catch (Exception ex)
@@ -50,9 +60,7 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
             throw new AppException("An error occurred while disconnecting. Please try again later or close the app.");
         }
     }
-
     
-
     public WebSocketWithMetaData GetConnection(Guid id)
     {
         try
@@ -105,4 +113,35 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
             throw new AppException("An error occurred while checking metadata. Please try again later.");
         }
     }
+    
+    public void ResetConnection(Guid id)
+    {
+        if (_connections.ContainsKey(id))
+        {
+            _connections[id].Username = null; // Reset the username or other metadata
+            _connections[id].StopDisconnectTimer();
+            _logger.LogInformation($"Connection metadata reset for GUID: {id}");
+        }
+        else
+        {
+            _logger.LogWarning($"Attempted to reset metadata for non-existent connection with GUID: {id}");
+        }
+    }
+    
+    public void StartDisconnectTimer(Guid id, Action disconnectAction, int timeoutMilliseconds)
+    {
+        if (_connections.ContainsKey(id))
+        {
+            _connections[id].StartDisconnectTimer(disconnectAction, timeoutMilliseconds);
+        }
+    }
+    
+    public void StopDisconnectTimer(Guid id)
+    {
+        if (_connections.ContainsKey(id))
+        {
+            _connections[id].StopDisconnectTimer();
+        }
+    }
+
 }

@@ -39,6 +39,14 @@ dependencies:
   web_socket_channel: ^2.4.0
   animated_button: ^0.2.0
   flutter_animate: ^4.5.0
+  carousel_slider: ^4.2.1
+  screen_recorder: ^0.2.0
+  path_provider: ^2.1.3
+  image_gallery_saver: ^2.0.3
+  flutter_ffmpeg: ^0.4.2
+  universal_html: ^2.2.4
+  permission_handler: ^11.3.1
+  flutter_screen_recording: ^2.0.10
 
 dev_dependencies:
   flutter_test:
@@ -58,6 +66,9 @@ dev_dependencies:
 flutter:
   assets:
     - assets/car.png
+    - assets/images/car1.jpg
+    - assets/images/car2.jpg
+    - assets/images/car3.jpg
 
 
   # The following line ensures that the Material Icons font is

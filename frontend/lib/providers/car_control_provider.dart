@@ -25,6 +25,22 @@ class CarControlProvider with ChangeNotifier {
     }
   }
 
+  void cycleLightState() {
+    _lightState = _lightState == LightState.off
+        ? LightState.on
+        : _lightState == LightState.on
+        ? LightState.auto
+        : LightState.off;
+
+    final command = _lightState == LightState.on
+        ? 'on'
+        : _lightState == LightState.off
+        ? 'off'
+        : 'auto';
+
+    sendCommand('car/led/control', command);
+  }
+
   void signIn(String nickName) {
     webSocketService.sendSignIn(nickName);
   }
