@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/ui/widgets/styled_button_widget.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
+import 'styled_button_widget.dart';
 
 class ControlButtons extends StatelessWidget {
   final VoidCallback onStartStream;
