@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,13 +28,16 @@ class _StreamContainerState extends State<StreamContainer> {
     _requestPermissions();
   }
 
+  /* We've found out that there is no need for external storage permission write
+  to be able to store screenshots in gallery for android 12 and above,
+  but we left it as it is as an example for requesting a permission*/
   Future<void> _requestPermissions() async {
-    await [
-      Permission.storage,
-      Permission.microphone,
-      Permission.camera,
-      Permission.manageExternalStorage,
-    ].request();
+    if (!kIsWeb && Platform.isAndroid) {
+      await [
+        Permission.storage,
+        Permission.manageExternalStorage,
+      ].request();
+    }
   }
 
   Future<void> _takeScreenshot() async {

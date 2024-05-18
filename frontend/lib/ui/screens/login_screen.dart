@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../widgets/login_widget.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -49,9 +50,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           builder: (context, child) {
             return Transform.translate(
               offset: Offset(_controller.value * 5 - 2.5, 0),
-              child: Text('Login', style: TextStyle(color: Colors.white)),
-            );
-          },
+              child: Text(
+                'Login',
+                style: GoogleFonts.rowdies(color: Colors.white),
+              ),
+            );},
         ).animate().fadeIn(duration: 800.ms).then().slide(begin: Offset(-1, 0), end: Offset(0, 0), duration: 800.ms).then().shimmer(),
       ),
       body: LoginWidget(),

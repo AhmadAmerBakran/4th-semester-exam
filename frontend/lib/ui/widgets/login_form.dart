@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../models/user.dart';
 import '../../providers/car_control_provider.dart';
@@ -19,8 +20,10 @@ class LoginForm extends StatelessWidget {
           width: MediaQuery.of(context).size.width > 600 ? 400 : MediaQuery.of(context).size.width * 0.8,
           child: TextField(
             controller: nicknameController,
+            style: GoogleFonts.rowdies(),
             decoration: InputDecoration(
               labelText: 'Nickname',
+              labelStyle: GoogleFonts.rowdies(),
               border: OutlineInputBorder(),
               fillColor: Colors.white.withOpacity(0.8),
               filled: true,
@@ -41,7 +44,7 @@ class LoginForm extends StatelessWidget {
               });
             }
           },
-          child: Text('Start'),
+          child: Text('Start', style: GoogleFonts.rowdies()),
         ).animate().slide(duration: 800.ms, begin: Offset(1, 0), end: Offset(0, 0)).then().shimmer(),
       ],
     );

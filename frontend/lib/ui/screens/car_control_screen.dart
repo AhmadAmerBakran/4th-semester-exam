@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../providers/user_provider.dart';
@@ -87,8 +88,10 @@ class _CarControlScreenState extends State<CarControlScreen> {
     return Scaffold(
 
       appBar: AppBar(
-        title: Text(userProvider.user?.nickname ?? 'Car Control'),
-        actions: [
+        title: Text(
+          userProvider.user?.nickname ?? 'Car Control',
+          style: GoogleFonts.rowdies(),
+        ),        actions: [
           IconButton(
             icon: Icon(Icons.notifications),
             onPressed: () {
