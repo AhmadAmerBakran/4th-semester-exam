@@ -26,7 +26,6 @@ class MyApp extends StatelessWidget {
               },
                   (binaryMessage) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  // Process binary message here
                 });
               },
             ),

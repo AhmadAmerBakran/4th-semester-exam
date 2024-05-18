@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/user.dart';
 import '../services/websocket_service.dart';
 
 enum LightState { off, on, auto }
@@ -41,8 +42,8 @@ class CarControlProvider with ChangeNotifier {
     sendCommand('car/led/control', command);
   }
 
-  void signIn(String nickName) {
-    webSocketService.sendSignIn(nickName);
+  void signIn(User user) {
+    webSocketService.sendSignIn(user.nickname);
   }
 
   void signOut() {

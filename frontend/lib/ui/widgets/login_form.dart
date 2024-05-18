@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/user.dart';
 import '../../providers/car_control_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+
+import '../../providers/user_provider.dart';
 
 class LoginForm extends StatelessWidget {
   final TextEditingController nicknameController;
@@ -30,8 +33,10 @@ class LoginForm extends StatelessWidget {
             final nickname = nicknameController.text;
             if (nickname.isNotEmpty) {
               FocusScope.of(context).unfocus();
+              final user = User(nickname: nickname);
               Future.delayed(Duration(milliseconds: 400), () {
-                Provider.of<CarControlProvider>(context, listen: false).signIn(nickname);
+                Provider.of<UserProvider>(context, listen: false).setUser(user);
+                Provider.of<CarControlProvider>(context, listen: false).signIn(user);
                 Navigator.pushReplacementNamed(context, '/carControl');
               });
             }
