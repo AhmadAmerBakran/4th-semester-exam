@@ -18,7 +18,10 @@ namespace MQTTClient
         private IMqttClient _client;
         private MqttFactory _factory;
         private readonly ConcurrentDictionary<string, (string message, Timer timer)> _debounceTimers;
+        private const int ReconnectDelay = 5000; // Reconnect delay in milliseconds
+        private const int MaxReconnectAttempts = 10; // Max number of reconnect attempts
         private const int DebounceInterval = 500;
+        private int _reconnectAttempts = 0;
         public event Action<string, string> MessageReceived;
 
         public MQTTClientManager(ILogger<MQTTClientManager> logger)
@@ -27,6 +30,7 @@ namespace MQTTClient
             _factory = new MqttFactory();
             _client = _factory.CreateMqttClient();
             _debounceTimers = new ConcurrentDictionary<string, (string, Timer)>();
+            _client.DisconnectedAsync += OnDisconnectedAsync;
         }
 
         public void InitializeSubscriptions()
@@ -102,12 +106,15 @@ namespace MQTTClient
                 .WithCleanSession()
                 .WithTls(tlsOptions)
                 .WithProtocolVersion(MqttProtocolVersion.V500)
+                .WithKeepAlivePeriod(TimeSpan.FromSeconds(60)) // Set the keep-alive period
                 .Build();
 
             try
             {
                 await _client.ConnectAsync(mqttClientOptions, CancellationToken.None);
                 _logger.LogInformation("Connected to MQTT Broker.");
+                _reconnectAttempts = 0; // Reset reconnect attempts after successful connection
+
             }
             catch (MqttCommunicationException ex)
             {
@@ -128,6 +135,28 @@ namespace MQTTClient
             {
                 _logger.LogError(ex, "An unexpected error occurred while connecting to the MQTT broker.");
                 throw new AppException("An unexpected error occurred while connecting to the MQTT broker. Please try again later.");
+            }
+        }
+        
+        private async Task OnDisconnectedAsync(MqttClientDisconnectedEventArgs e)
+        {
+            _logger.LogWarning("Disconnected from MQTT Broker. Reason: {Reason}", e.Reason);
+
+            if (e.Exception != null)
+            {
+                _logger.LogError(e.Exception, "An exception occurred while disconnecting from the MQTT broker.");
+            }
+
+            if (_reconnectAttempts < MaxReconnectAttempts)
+            {
+                _reconnectAttempts++;
+                _logger.LogInformation("Attempting to reconnect to MQTT Broker (Attempt {ReconnectAttempt}/{MaxReconnectAttempts})...", _reconnectAttempts, MaxReconnectAttempts);
+                await Task.Delay(ReconnectDelay);
+                await ConnectAsync();
+            }
+            else
+            {
+                _logger.LogError("Max reconnect attempts reached. Could not reconnect to MQTT Broker.");
             }
         }
 
