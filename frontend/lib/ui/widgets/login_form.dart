@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +15,8 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final webSocketService = Provider.of<CarControlProvider>(context, listen: false).webSocketService;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -37,10 +41,15 @@ class LoginForm extends StatelessWidget {
             if (nickname.isNotEmpty) {
               FocusScope.of(context).unfocus();
               final user = User(nickname: nickname);
-              Future.delayed(Duration(milliseconds: 400), () {
-                Provider.of<UserProvider>(context, listen: false).setUser(user);
-                Provider.of<CarControlProvider>(context, listen: false).signIn(user);
-                Navigator.pushReplacementNamed(context, '/carControl');
+              Provider.of<UserProvider>(context, listen: false).setUser(user);
+              Provider.of<CarControlProvider>(context, listen: false).signIn(user);
+
+              webSocketService.messageStream.listen((message) {
+                final decodedMessage = jsonDecode(message);
+                if (decodedMessage['eventType'] == 'ServerClientSignIn' &&
+                    decodedMessage['Message'] == 'You have connected as $nickname') {
+                  Navigator.pushReplacementNamed(context, '/carControl');
+                }
               });
             }
           },

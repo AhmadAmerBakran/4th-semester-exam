@@ -12,17 +12,22 @@ class WebSocketService {
   final int _bufferSize = 5;
   late Timer _frameTimer;
 
+  final StreamController<String> _messageStreamController = StreamController<String>.broadcast();
+
   WebSocketService(String url, this._onMessageReceived, this._onBinaryMessageReceived) {
     _channel = WebSocketChannel.connect(Uri.parse(url));
     _channel.stream.listen((message) {
       if (message is String) {
         _onMessageReceived(message);
+        _messageStreamController.add(message);
       } else if (message is List<int>) {
         _addFrameToBuffer(Uint8List.fromList(message));
       }
     });
     _frameTimer = Timer.periodic(Duration(milliseconds: 100), (_) => _displayFrameFromBuffer());
   }
+
+  Stream<String> get messageStream => _messageStreamController.stream;
 
   void _addFrameToBuffer(Uint8List frame) {
     if (_frameBuffer.length >= _bufferSize) {

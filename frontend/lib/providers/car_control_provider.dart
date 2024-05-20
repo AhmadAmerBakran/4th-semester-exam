@@ -11,6 +11,7 @@ class CarControlProvider with ChangeNotifier {
   int _carSpeed = 136;
   List<String> _notifications = [];
   int _unreadCount = 0;
+  bool _notificationsEnabled = true;
 
   CarControlProvider({required this.webSocketService});
 
@@ -19,6 +20,7 @@ class CarControlProvider with ChangeNotifier {
   int get carSpeed => _carSpeed;
   List<String> get notifications => _notifications;
   int get unreadCount => _unreadCount;
+  bool get notificationsEnabled => _notificationsEnabled;
 
   void sendCommand(String topic, String command) {
     webSocketService.sendCarControlCommand(topic, command);
@@ -85,7 +87,7 @@ class CarControlProvider with ChangeNotifier {
   }
 
   void addNotification(String notification) {
-    if (notification.startsWith('Notification on')) {
+    if (_notificationsEnabled && notification.startsWith('Notification on')) {
       _notifications.add(notification);
       _unreadCount++;
       notifyListeners();
@@ -94,6 +96,11 @@ class CarControlProvider with ChangeNotifier {
 
   void clearUnreadCount() {
     _unreadCount = 0;
+    notifyListeners();
+  }
+
+  void toggleNotifications(bool isEnabled) {
+    _notificationsEnabled = isEnabled;
     notifyListeners();
   }
 }
