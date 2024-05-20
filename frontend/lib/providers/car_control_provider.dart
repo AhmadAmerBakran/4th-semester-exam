@@ -8,6 +8,7 @@ class CarControlProvider with ChangeNotifier {
   final WebSocketService webSocketService;
   LightState _lightState = LightState.off;
   int _flashIntensity = 0;
+  int _carSpeed = 136;
   List<String> _notifications = [];
   int _unreadCount = 0;
 
@@ -15,6 +16,7 @@ class CarControlProvider with ChangeNotifier {
 
   LightState get lightState => _lightState;
   int get flashIntensity => _flashIntensity;
+  int get carSpeed => _carSpeed;
   List<String> get notifications => _notifications;
   int get unreadCount => _unreadCount;
 
@@ -73,6 +75,12 @@ class CarControlProvider with ChangeNotifier {
   void setFlashIntensity(int value) {
     _flashIntensity = value;
     sendCommand('cam/flash', value.toString());
+    notifyListeners();
+  }
+
+  void setCarSpeed(int value) {
+    _carSpeed = value;
+    sendCommand('car/speed', value.toString());
     notifyListeners();
   }
 

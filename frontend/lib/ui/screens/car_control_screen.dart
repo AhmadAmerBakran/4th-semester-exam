@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import '../../providers/user_provider.dart';
 import '../../services/websocket_service.dart';
 import '../widgets/Aanimated_background.dart';
 import '../widgets/animated_app_bar.dart';
+import '../widgets/car_speed_slider.dart';
 import '../widgets/flash_intensity_slider.dart';
 import '../widgets/notification_list_widget.dart';
 import '../widgets/stream_container_widget.dart';
@@ -189,23 +191,36 @@ class _CarControlScreenState extends State<CarControlScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Expanded(child: GamepadWidget()),
-              Expanded(
-                child: StreamContainer(
-                  isStreaming: _isStreaming,
-                  currentImage: _currentImage,
-                ),
+              Column(
+                children: [
+                  Expanded(child: GamepadWidget()),
+                ],
               ),
-              Expanded(
-                child: ControlButtons(
-                  onStartStream: _startStream,
-                  onStopStream: _stopStream,
-                ),
+              Column(
+                children: [
+                  Expanded(
+                    child: StreamContainer(
+                      isStreaming: _isStreaming,
+                      currentImage: _currentImage,
+                    ),
+                  ),
+                  FlashIntensitySlider(),
+                  CarSpeedSlider(),
+                ],
+              ),
+              Column(
+                children: [
+                  Expanded(
+                    child: ControlButtons(
+                      onStartStream: _startStream,
+                      onStopStream: _stopStream,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
-        FlashIntensitySlider(),
       ],
     );
   }
@@ -214,12 +229,24 @@ class _CarControlScreenState extends State<CarControlScreen> {
     return Column(
       children: [
         Expanded(
-          child: StreamContainer(
-            isStreaming: _isStreaming,
-            currentImage: _currentImage,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  Expanded(
+                    child: StreamContainer(
+                      isStreaming: _isStreaming,
+                      currentImage: _currentImage,
+                    ),
+                  ),
+                  FlashIntensitySlider(),
+                  CarSpeedSlider(),
+                ],
+              ),
+            ],
           ),
         ),
-        FlashIntensitySlider(),
         Expanded(
           child: Row(
             children: [
