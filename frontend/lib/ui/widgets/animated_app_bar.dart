@@ -3,9 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AnimatedAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final Widget? leading;
   final List<Widget> actions;
 
-  AnimatedAppBar({required this.title, required this.actions});
+  AnimatedAppBar({required this.title, this.leading, required this.actions});
 
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
@@ -26,6 +27,7 @@ class AnimatedAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: leading,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(

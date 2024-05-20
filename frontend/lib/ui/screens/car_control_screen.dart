@@ -29,6 +29,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
   late WebSocketService _webSocketService;
   ui.Image? _currentImage;
   bool _isStreaming = false;
+  bool _notificationsEnabled = false;
 
   @override
   void initState() {
@@ -36,6 +37,13 @@ class _CarControlScreenState extends State<CarControlScreen> {
     print("CarControlScreen initialized");
     _setOrientation();
     _initWebSocket();
+  }
+  void _toggleNotifications(bool value) {
+    setState(() {
+      _notificationsEnabled = value;
+    });
+    context.read<CarControlProvider>().toggleNotifications(value);
+    context.read<CarControlProvider>().receiveNotifications();
   }
 
   void _setOrientation() {
@@ -73,7 +81,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
       _onMessageReceived,
       _onBinaryMessageReceived,
     );
-    context.read<CarControlProvider>().receiveNotifications();
+    //context.read<CarControlProvider>().receiveNotifications();
   }
 
   void _startStream() {
@@ -107,6 +115,28 @@ class _CarControlScreenState extends State<CarControlScreen> {
             children: [
               AnimatedAppBar(
                 title: userProvider.user?.nickname ?? 'Car Control',
+                leading: Builder(
+                  builder: (context) => PopupMenuButton(
+                    icon: Icon(Icons.settings),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Enable Notifications"),
+                            Switch(
+                              value: _notificationsEnabled,
+                              onChanged: (value) {
+                                _toggleNotifications(value);
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 actions: [
                   Consumer<CarControlProvider>(
                     builder: (context, carControlProvider, child) {
