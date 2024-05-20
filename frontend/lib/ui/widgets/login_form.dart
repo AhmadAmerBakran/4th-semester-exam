@@ -17,8 +17,8 @@ class LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final webSocketService = Provider.of<CarControlProvider>(context, listen: false).webSocketService;
-
+    final carControlProvider = Provider.of<CarControlProvider>(context, listen: false);
+    final webSocketService = carControlProvider.webSocketService;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -45,7 +45,7 @@ class LoginForm extends StatelessWidget {
               FocusScope.of(context).unfocus();
               final user = User(nickname: nickname);
               Provider.of<UserProvider>(context, listen: false).setUser(user);
-              Provider.of<CarControlProvider>(context, listen: false).signIn(user);
+              carControlProvider.signIn(user);
 
 
               webSocketService.messageStream.listen((message) {

@@ -14,11 +14,26 @@ import 'utils/constants.dart';
 
 
 void main() {
-  runApp(MyApp());
+  final webSocketService = WebSocketService();
+  webSocketService.init(
+    WEBSOCKET_URL,
+        (message) {
+      print('WebSocket message: $message');
+    },
+        (binaryMessage) {
+      // Handle binary message
+    },
+  );
+
+  runApp(MyApp(webSocketService: webSocketService));
 }
 
 
 class MyApp extends StatelessWidget {
+  final WebSocketService webSocketService;
+
+  MyApp({required this.webSocketService});
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -30,19 +45,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FlashControlProvider()),
         ChangeNotifierProvider(create: (_) => StreamControlProvider()),
         ChangeNotifierProvider(
-          create: (context) => CarControlProvider(
-            webSocketService: WebSocketService(
-              WEBSOCKET_URL,
-                  (message) {
-                print('WebSocket message: $message');
-              },
-                  (binaryMessage) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.read<StreamControlProvider>().setCurrentImage(binaryMessage);
-                });
-              },
-            ),
-          ),
+          create: (context) => CarControlProvider(webSocketService: webSocketService),
         ),
       ],
       child: MaterialApp(

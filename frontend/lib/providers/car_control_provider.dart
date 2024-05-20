@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/websocket_service.dart';
@@ -32,5 +34,9 @@ class CarControlProvider with ChangeNotifier {
 
   void getCarLog() {
     webSocketService.sendGetCarLog();
+  }
+
+  void reconnect(String url, Function(String) onMessageReceived, Function(Uint8List) onBinaryMessageReceived) {
+    webSocketService.init(url, onMessageReceived, onBinaryMessageReceived);
   }
 }

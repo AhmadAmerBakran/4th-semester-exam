@@ -21,7 +21,7 @@ class CarSpeedSlider extends StatelessWidget {
                   value: speedControlProvider.carSpeed.toDouble(),
                   min: 0,
                   max: 255,
-                  divisions: 15,
+                  divisions: 255,
                   label: speedControlProvider.carSpeed.round().toString(),
                   onChanged: (value) {
                     speedControlProvider.setCarSpeed(value.round());
