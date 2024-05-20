@@ -18,59 +18,77 @@ class _GamepadWidgetState extends State<GamepadWidget> {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CustomIconButton(
-              icon: Icons.arrow_upward,
-              onTap: () {},
-              onTapDown: (_) {
-                carControlProvider.sendCommand('car/control', '1');
-              },
-              onTapUp: (_) {
-                carControlProvider.sendCommand('car/control', '0');
-              },
-              color: Colors.blue,
-              size: 60,
+            Flexible(
+
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomIconButton(
+                    icon: Icons.arrow_upward,
+                    onTap: () {},
+                    onTapDown: (_) {
+                      carControlProvider.sendCommand('car/control', '1');
+                    },
+                    onTapUp: (_) {
+                      carControlProvider.sendCommand('car/control', '0');
+                    },
+                    color: Colors.blue,
+                    size: 60,
+                  ),
+                ],
+              ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomIconButton(
-                  icon: Icons.arrow_back,
-                  onTap: () {},
-                  onTapDown: (_) {
-                    carControlProvider.sendCommand('car/control', '6');
-                  },
-                  onTapUp: (_) {
-                    carControlProvider.sendCommand('car/control', '0');
-                  },
-                  color: Colors.blue,
-                  size: 60,
-                ),
-                SizedBox(width: 20),
-                CustomIconButton(
-                  icon: Icons.arrow_forward,
-                  onTap: () {},
-                  onTapDown: (_) {
-                    carControlProvider.sendCommand('car/control', '5');
-                  },
-                  onTapUp: (_) {
-                    carControlProvider.sendCommand('car/control', '0');
-                  },
-                  color: Colors.blue,
-                  size: 60,
-                ),
-              ],
+            Flexible(
+
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomIconButton(
+                    icon: Icons.arrow_back,
+                    onTap: () {},
+                    onTapDown: (_) {
+                      carControlProvider.sendCommand('car/control', '6');
+                    },
+                    onTapUp: (_) {
+                      carControlProvider.sendCommand('car/control', '0');
+                    },
+                    color: Colors.blue,
+                    size: 60,
+                  ),
+                  SizedBox(width: 20),
+                  CustomIconButton(
+                    icon: Icons.arrow_forward,
+                    onTap: () {},
+                    onTapDown: (_) {
+                      carControlProvider.sendCommand('car/control', '5');
+                    },
+                    onTapUp: (_) {
+                      carControlProvider.sendCommand('car/control', '0');
+                    },
+                    color: Colors.blue,
+                    size: 60,
+                  ),
+                ],
+              ),
             ),
-            CustomIconButton(
-              icon: Icons.arrow_downward,
-              onTap: () {},
-              onTapDown: (_) {
-                carControlProvider.sendCommand('car/control', '2');
-              },
-              onTapUp: (_) {
-                carControlProvider.sendCommand('car/control', '0');
-              },
-              color: Colors.blue,
-              size: 60,
+            Flexible(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomIconButton(
+                    icon: Icons.arrow_downward,
+                    onTap: () {},
+                    onTapDown: (_) {
+                      carControlProvider.sendCommand('car/control', '2');
+                    },
+                    onTapUp: (_) {
+                      carControlProvider.sendCommand('car/control', '0');
+                    },
+                    color: Colors.blue,
+                    size: 60,
+                  ),
+                ],
+              ),
             ),
           ],
         );

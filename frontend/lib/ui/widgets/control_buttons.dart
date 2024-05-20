@@ -27,41 +27,60 @@ class ControlButtons extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        CustomIconButton(
-          icon: Icons.drive_eta,
-          onTap: () => carControlProvider.sendCommand('car/control', '7'),
-          color: Colors.blue,
-          size: 60,
+        Flexible(
+
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CustomIconButton(
+                icon: Icons.drive_eta,
+                onTap: () => carControlProvider.sendCommand('car/control', '7'),
+                color: Colors.blue,
+                size: 60,
+              ),
+            ],
+          ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CustomIconButton(
-              icon: Icons.play_arrow,
-              onTap: () {
-                carControlProvider.startStream();
-                onStartStream();
-              },
-              color: Colors.green,
-              size: 60,
-            ),
-            SizedBox(width: 20),
-            CustomIconButton(
-              icon: Icons.stop,
-              onTap: () {
-                carControlProvider.stopStream();
-                onStopStream();
-              },
-              color: Colors.red,
-              size: 60,
-            ),
-          ],
+        Flexible(
+
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CustomIconButton(
+                icon: Icons.play_arrow,
+                onTap: () {
+                  carControlProvider.startStream();
+                  onStartStream();
+                },
+                color: Colors.green,
+                size: 60,
+              ),
+              SizedBox(width: 20),
+              CustomIconButton(
+                icon: Icons.stop,
+                onTap: () {
+                  carControlProvider.stopStream();
+                  onStopStream();
+                },
+                color: Colors.red,
+                size: 60,
+              ),
+            ],
+          ),
         ),
-        CustomIconButton(
-          icon: Icons.lightbulb,
-          onTap: carControlProvider.cycleLightState,
-          color: Colors.orange,
-          size: 60,
+        Flexible(
+
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CustomIconButton(
+                icon: Icons.lightbulb,
+                onTap: carControlProvider.cycleLightState,
+                color: Colors.orange,
+                size: 60,
+              ),
+            ],
+          ),
         ),
       ],
     );

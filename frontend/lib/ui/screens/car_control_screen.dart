@@ -215,6 +215,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
                   child: Column(
                     children: [
                       Expanded(
+                        flex: 3,
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             return Container(
@@ -273,14 +274,31 @@ class _CarControlScreenState extends State<CarControlScreen> {
             children: [
               Column(
                 children: [
-                  Expanded(
-                    child: StreamContainer(
-                      isStreaming: _isStreaming,
-                      currentImage: _currentImage,
+                  Flexible(
+                    flex: 3,
+                    child: Row(
+                      children: [
+                        StreamContainer(
+                          isStreaming: _isStreaming,
+                          currentImage: _currentImage,
+                        ),
+                      ],
                     ),
                   ),
-                  FlashIntensitySlider(),
-                  CarSpeedSlider(),
+                  Flexible(
+                    child: Row(
+                      children: [
+                        FlashIntensitySlider(),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: Row(
+                      children: [
+                        CarSpeedSlider(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ],
