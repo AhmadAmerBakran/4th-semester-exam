@@ -1,39 +1,57 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../../providers/notifications_provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../services/websocket_service.dart';
 import '../widgets/Aanimated_background.dart';
 import '../widgets/animated_app_bar.dart';
+import '../widgets/car_speed_slider.dart';
 import '../widgets/flash_intensity_slider.dart';
+import '../widgets/notification_list_widget.dart';
 import '../widgets/stream_container_widget.dart';
 import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
 import '../../utils/constants.dart';
+
 
 class CarControlScreen extends StatefulWidget {
   @override
   _CarControlScreenState createState() => _CarControlScreenState();
 }
 
+
 class _CarControlScreenState extends State<CarControlScreen> {
   static const String streamUrl = WEBSOCKET_URL;
   late WebSocketService _webSocketService;
   ui.Image? _currentImage;
   bool _isStreaming = false;
+  bool _notificationsEnabled = false;
+
 
   @override
   void initState() {
     super.initState();
     print("CarControlScreen initialized");
     _setOrientation();
+    _initWebSocket();
   }
+
+
+  void _toggleNotifications(bool value) {
+    setState(() {
+      _notificationsEnabled = value;
+    });
+    context.read<NotificationsProvider>().toggleNotifications(value);
+    context.read<CarControlProvider>().receiveNotifications();
+  }
+
 
   void _setOrientation() {
     if (!kIsWeb && Platform.isAndroid) {
@@ -41,9 +59,14 @@ class _CarControlScreenState extends State<CarControlScreen> {
     }
   }
 
+
   void _onMessageReceived(String message) {
     print("Received text message: $message");
+    if (message.startsWith("Notification on")) {
+      context.read<NotificationsProvider>().addNotification(message);
+    }
   }
+
 
   void _onBinaryMessageReceived(Uint8List message) async {
     print("Received binary message of length: ${message.length}");
@@ -53,6 +76,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
     });
   }
 
+
   Future<ui.Image> _decodeImageFromList(Uint8List list) async {
     final Completer<ui.Image> completer = Completer();
     ui.decodeImageFromList(list, (ui.Image img) {
@@ -61,18 +85,25 @@ class _CarControlScreenState extends State<CarControlScreen> {
     return completer.future;
   }
 
-  void _startStream() {
-    print("Starting stream...");
+
+  void _initWebSocket() {
     _webSocketService = WebSocketService(
       streamUrl,
       _onMessageReceived,
       _onBinaryMessageReceived,
     );
+    //context.read<CarControlProvider>().receiveNotifications();
+  }
+
+
+  void _startStream() {
+    print("Starting stream...");
     setState(() {
       _isStreaming = true;
     });
     print("Connected to WebSocket");
   }
+
 
   void _stopStream() {
     print("Stopping stream...");
@@ -83,6 +114,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
     });
     print("Disconnected from WebSocket");
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -97,11 +129,71 @@ class _CarControlScreenState extends State<CarControlScreen> {
             children: [
               AnimatedAppBar(
                 title: userProvider.user?.nickname ?? 'Car Control',
+                leading: Builder(
+                  builder: (context) => PopupMenuButton(
+                    icon: Icon(Icons.settings),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Enable Notifications"),
+                            Switch(
+                              value: _notificationsEnabled,
+                              onChanged: (value) {
+                                _toggleNotifications(value);
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 actions: [
-                  IconButton(
-                    icon: Icon(Icons.notifications),
-                    onPressed: () {
-                      context.read<CarControlProvider>().receiveNotifications();
+                  Consumer<NotificationsProvider>(
+                    builder: (context, notificationsProvider, child) {
+                      return Stack(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.notifications),
+                            onPressed: () {
+                              notificationsProvider.clearUnreadCount();
+                              showModalBottomSheet(
+                                context: context,
+                                builder: (context) => NotificationList(),
+                              );
+                            },
+                          ),
+                          if (notificationsProvider.unreadCount > 0)
+                            Positioned(
+                              right: 8,
+                              top: 8,
+                              child: Container(
+                                padding: EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                constraints: BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '${notificationsProvider.unreadCount}',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      );
                     },
                   ),
                   IconButton(
@@ -135,44 +227,128 @@ class _CarControlScreenState extends State<CarControlScreen> {
     );
   }
 
+
   Widget _buildMobileLayout() {
-    return Column(
-      children: [
-        Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(child: GamepadWidget()),
-              Expanded(
-                child: StreamContainer(
-                  isStreaming: _isStreaming,
-                  currentImage: _currentImage,
+    return Container(
+      constraints: BoxConstraints(minHeight: 200),
+      child: Column(
+        children: [
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Flexible(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Container(
+                              constraints: BoxConstraints(
+                                maxHeight: constraints.maxHeight - 20,
+                              ),
+                              child: GamepadWidget(),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(
-                child: ControlButtons(
-                  onStartStream: _startStream,
-                  onStopStream: _stopStream,
+                Flexible(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Container(
+                              constraints: BoxConstraints(
+                                maxHeight: constraints.maxHeight - 20,
+                              ),
+                              child: StreamContainer(
+                                isStreaming: _isStreaming,
+                                currentImage: _currentImage,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      FlashIntensitySlider(),
+                      CarSpeedSlider(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                Flexible(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Container(
+                              constraints: BoxConstraints(
+                                maxHeight: constraints.maxHeight - 20,
+                              ),
+                              child: ControlButtons(
+                                onStartStream: _startStream,
+                                onStopStream: _stopStream,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        FlashIntensitySlider(),
-      ],
+        ],
+      ),
     );
   }
+
 
   Widget _buildWebLayout() {
     return Column(
       children: [
         Expanded(
-          child: StreamContainer(
-            isStreaming: _isStreaming,
-            currentImage: _currentImage,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  Flexible(
+                    flex: 3,
+                    child: Row(
+                      children: [
+                        StreamContainer(
+                          isStreaming: _isStreaming,
+                          currentImage: _currentImage,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+
+                    child: Row(
+                      children: [
+                        FlashIntensitySlider(),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+
+                    child: Row(
+                      children: [
+                        CarSpeedSlider(),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        FlashIntensitySlider(),
         Expanded(
           child: Row(
             children: [
@@ -191,6 +367,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
       ],
     );
   }
+
 
   @override
   void dispose() {

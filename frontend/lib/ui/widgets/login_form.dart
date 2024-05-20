@@ -1,18 +1,25 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../models/user.dart';
 import '../../providers/car_control_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
 import '../../providers/user_provider.dart';
+
 
 class LoginForm extends StatelessWidget {
   final TextEditingController nicknameController;
+
+
   LoginForm({required this.nicknameController});
+
 
   @override
   Widget build(BuildContext context) {
+    final webSocketService = Provider.of<CarControlProvider>(context, listen: false).webSocketService;
+
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -37,10 +44,20 @@ class LoginForm extends StatelessWidget {
             if (nickname.isNotEmpty) {
               FocusScope.of(context).unfocus();
               final user = User(nickname: nickname);
-              Future.delayed(Duration(milliseconds: 400), () {
-                Provider.of<UserProvider>(context, listen: false).setUser(user);
-                Provider.of<CarControlProvider>(context, listen: false).signIn(user);
-                Navigator.pushReplacementNamed(context, '/carControl');
+              Provider.of<UserProvider>(context, listen: false).setUser(user);
+              Provider.of<CarControlProvider>(context, listen: false).signIn(user);
+
+
+              webSocketService.messageStream.listen((message) {
+                if (_isJson(message)) {
+                  final decodedMessage = jsonDecode(message);
+                  if (decodedMessage['eventType'] == 'ServerClientSignIn' &&
+                      decodedMessage['Message'] == 'You have connected as $nickname') {
+                    Navigator.pushReplacementNamed(context, '/carControl');
+                  }
+                } else {
+                  print("Non-JSON message received: $message");
+                }
               });
             }
           },
@@ -48,5 +65,15 @@ class LoginForm extends StatelessWidget {
         ).animate().slide(duration: 800.ms, begin: Offset(1, 0), end: Offset(0, 0)).then().shimmer(),
       ],
     );
+  }
+
+
+  bool _isJson(String str) {
+    try {
+      jsonDecode(str);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }
