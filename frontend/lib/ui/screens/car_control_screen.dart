@@ -185,45 +185,84 @@ class _CarControlScreenState extends State<CarControlScreen> {
 
 
   Widget _buildMobileLayout() {
-    return Column(
-      children: [
-        Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Column(
-                children: [
-                  Expanded(child: GamepadWidget()),
-                ],
-              ),
-              Column(
-                children: [
-                  Expanded(
-                    child: StreamContainer(
-                      isStreaming: _isStreaming,
-                      currentImage: _currentImage,
-                    ),
+    return Container(
+      constraints: BoxConstraints(minHeight: 200),
+      child: Column(
+        children: [
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Flexible(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Container(
+                              constraints: BoxConstraints(
+                                maxHeight: constraints.maxHeight - 20,
+                              ),
+                              child: GamepadWidget(),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  FlashIntensitySlider(),
-                  CarSpeedSlider(),
-                ],
-              ),
-              Column(
-                children: [
-                  Expanded(
-                    child: ControlButtons(
-                      onStartStream: _startStream,
-                      onStopStream: _stopStream,
-                    ),
+                ),
+                Flexible(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Container(
+                              constraints: BoxConstraints(
+                                maxHeight: constraints.maxHeight - 20,
+                              ),
+                              child: StreamContainer(
+                                isStreaming: _isStreaming,
+                                currentImage: _currentImage,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      FlashIntensitySlider(),
+                      CarSpeedSlider(),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                ),
+                Flexible(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Container(
+                              constraints: BoxConstraints(
+                                maxHeight: constraints.maxHeight - 20,
+                              ),
+                              child: ControlButtons(
+                                onStartStream: _startStream,
+                                onStopStream: _stopStream,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+
 
   Widget _buildWebLayout() {
     return Column(
