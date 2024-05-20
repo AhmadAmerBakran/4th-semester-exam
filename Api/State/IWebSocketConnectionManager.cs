@@ -14,4 +14,5 @@ public interface IWebSocketConnectionManager
     void ResetConnection(Guid id);
     void StartDisconnectTimer(Guid id, Action disconnectAction, int timeoutMilliseconds);
     void StopDisconnectTimer(Guid id);
+    Task ResetCarStateToDefault(Guid connectionId);
 }

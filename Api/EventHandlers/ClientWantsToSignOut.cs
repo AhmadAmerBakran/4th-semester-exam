@@ -28,10 +28,7 @@ public class ClientWantsToSignOut : BaseEventHandler<ClientWantsToSignOutDto>
             var connectionId = socket.ConnectionInfo.Id;
 
             // Reset car state to default
-            await _carControlService.CarControl(connectionId, "cam/flash", "off");
-            await _carControlService.CarControl(connectionId, "car/led/control", "off");
-            await _carControlService.CarControl(connectionId, "car/control", "manual mode");
-            await _carControlService.CarControl(connectionId, "cam/control", "stop");
+            _webSocketConnectionManager.ResetConnection(connectionId);
 
             _webSocketConnectionManager.ResetConnection(connectionId); // Reset metadata
             _webSocketConnectionManager.StartDisconnectTimer(connectionId, () =>
