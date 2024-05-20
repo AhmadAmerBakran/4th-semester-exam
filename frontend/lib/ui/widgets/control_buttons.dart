@@ -1,29 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/car_control_provider.dart';
+import '../../providers/light_control_provider.dart';
+import '../../providers/stream_control_provider.dart';
 import 'styled_button_widget.dart';
+
 
 class ControlButtons extends StatelessWidget {
   final VoidCallback onStartStream;
   final VoidCallback onStopStream;
 
+
   ControlButtons({required this.onStartStream, required this.onStopStream});
+
 
   @override
   Widget build(BuildContext context) {
     final carControlProvider = Provider.of<CarControlProvider>(context);
-    String getLightButtonText(LightState state) {
-      switch (state) {
-        case LightState.on:
-          return 'Auto Light Mode';
-        case LightState.auto:
-          return 'Turn Off Lights';
-        case LightState.off:
-        default:
-          return 'Turn On Lights';
-      }
-    }
-
+    final lightControlProvider = Provider.of<LightControlProvider>(context);
+    final streamControlProvider = Provider.of<StreamControlProvider>(context);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -49,7 +44,7 @@ class ControlButtons extends StatelessWidget {
               CustomIconButton(
                 icon: Icons.play_arrow,
                 onTap: () {
-                  carControlProvider.startStream();
+                  streamControlProvider.startStream(context);
                   onStartStream();
                 },
                 color: Colors.green,
@@ -59,7 +54,7 @@ class ControlButtons extends StatelessWidget {
               CustomIconButton(
                 icon: Icons.stop,
                 onTap: () {
-                  carControlProvider.stopStream();
+                  streamControlProvider.stopStream(context);
                   onStopStream();
                 },
                 color: Colors.red,
@@ -75,7 +70,10 @@ class ControlButtons extends StatelessWidget {
             children: [
               CustomIconButton(
                 icon: Icons.lightbulb,
-                onTap: carControlProvider.cycleLightState,
+                onTap: () {
+                  lightControlProvider.cycleLightState();
+                  carControlProvider.sendCommand('car/led/control', lightControlProvider.command);
+                },
                 color: Colors.orange,
                 size: 60,
               ),

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+
 class WebSocketService {
   late WebSocketChannel _channel;
   final Function(String) _onMessageReceived;
@@ -12,14 +13,20 @@ class WebSocketService {
   final int _bufferSize = 5;
   late Timer _frameTimer;
 
+
   final StreamController<String> _messageStreamController = StreamController<String>.broadcast();
+
 
   WebSocketService(String url, this._onMessageReceived, this._onBinaryMessageReceived) {
     _channel = WebSocketChannel.connect(Uri.parse(url));
     _channel.stream.listen((message) {
       if (message is String) {
-        _onMessageReceived(message);
-        _messageStreamController.add(message);
+        try {
+          _onMessageReceived(message);
+          _messageStreamController.add(message);
+        } catch (e) {
+          print("Error parsing message: $e");
+        }
       } else if (message is List<int>) {
         _addFrameToBuffer(Uint8List.fromList(message));
       }
@@ -27,7 +34,9 @@ class WebSocketService {
     _frameTimer = Timer.periodic(Duration(milliseconds: 100), (_) => _displayFrameFromBuffer());
   }
 
+
   Stream<String> get messageStream => _messageStreamController.stream;
+
 
   void _addFrameToBuffer(Uint8List frame) {
     if (_frameBuffer.length >= _bufferSize) {
@@ -36,6 +45,7 @@ class WebSocketService {
     _frameBuffer.addLast(frame);
   }
 
+
   void _displayFrameFromBuffer() {
     if (_frameBuffer.isNotEmpty) {
       final frame = _frameBuffer.removeFirst();
@@ -43,9 +53,11 @@ class WebSocketService {
     }
   }
 
+
   void sendMessage(Map<String, dynamic> message) {
     _channel.sink.add(jsonEncode(message));
   }
+
 
   void sendCarControlCommand(String topic, String command) {
     sendMessage({
@@ -55,6 +67,7 @@ class WebSocketService {
     });
   }
 
+
   void sendSignIn(String nickName) {
     sendMessage({
       'eventType': 'ClientWantsToSignIn',
@@ -62,11 +75,13 @@ class WebSocketService {
     });
   }
 
+
   void sendSignOut() {
     sendMessage({
       'eventType': 'ClientWantsToSignOut',
     });
   }
+
 
   void sendReceiveNotifications() {
     sendMessage({
@@ -74,11 +89,13 @@ class WebSocketService {
     });
   }
 
+
   void sendGetCarLog() {
     sendMessage({
       'eventType': 'ClientWantsToGetCarLog',
     });
   }
+
 
   void close() {
     _frameTimer.cancel();

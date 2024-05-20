@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../providers/notifications_provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../services/websocket_service.dart';
@@ -19,10 +20,12 @@ import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
 import '../../utils/constants.dart';
 
+
 class CarControlScreen extends StatefulWidget {
   @override
   _CarControlScreenState createState() => _CarControlScreenState();
 }
+
 
 class _CarControlScreenState extends State<CarControlScreen> {
   static const String streamUrl = WEBSOCKET_URL;
@@ -31,6 +34,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
   bool _isStreaming = false;
   bool _notificationsEnabled = false;
 
+
   @override
   void initState() {
     super.initState();
@@ -38,13 +42,16 @@ class _CarControlScreenState extends State<CarControlScreen> {
     _setOrientation();
     _initWebSocket();
   }
+
+
   void _toggleNotifications(bool value) {
     setState(() {
       _notificationsEnabled = value;
     });
-    context.read<CarControlProvider>().toggleNotifications(value);
+    context.read<NotificationsProvider>().toggleNotifications(value);
     context.read<CarControlProvider>().receiveNotifications();
   }
+
 
   void _setOrientation() {
     if (!kIsWeb && Platform.isAndroid) {
@@ -52,12 +59,14 @@ class _CarControlScreenState extends State<CarControlScreen> {
     }
   }
 
+
   void _onMessageReceived(String message) {
     print("Received text message: $message");
     if (message.startsWith("Notification on")) {
-      context.read<CarControlProvider>().addNotification(message);
+      context.read<NotificationsProvider>().addNotification(message);
     }
   }
+
 
   void _onBinaryMessageReceived(Uint8List message) async {
     print("Received binary message of length: ${message.length}");
@@ -67,6 +76,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
     });
   }
 
+
   Future<ui.Image> _decodeImageFromList(Uint8List list) async {
     final Completer<ui.Image> completer = Completer();
     ui.decodeImageFromList(list, (ui.Image img) {
@@ -74,6 +84,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
     });
     return completer.future;
   }
+
 
   void _initWebSocket() {
     _webSocketService = WebSocketService(
@@ -84,6 +95,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
     //context.read<CarControlProvider>().receiveNotifications();
   }
 
+
   void _startStream() {
     print("Starting stream...");
     setState(() {
@@ -91,6 +103,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
     });
     print("Connected to WebSocket");
   }
+
 
   void _stopStream() {
     print("Stopping stream...");
@@ -101,6 +114,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
     });
     print("Disconnected from WebSocket");
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -138,21 +152,21 @@ class _CarControlScreenState extends State<CarControlScreen> {
                   ),
                 ),
                 actions: [
-                  Consumer<CarControlProvider>(
-                    builder: (context, carControlProvider, child) {
+                  Consumer<NotificationsProvider>(
+                    builder: (context, notificationsProvider, child) {
                       return Stack(
                         children: [
                           IconButton(
                             icon: Icon(Icons.notifications),
                             onPressed: () {
-                              context.read<CarControlProvider>().clearUnreadCount();
+                              notificationsProvider.clearUnreadCount();
                               showModalBottomSheet(
                                 context: context,
                                 builder: (context) => NotificationList(),
                               );
                             },
                           ),
-                          if (carControlProvider.unreadCount > 0)
+                          if (notificationsProvider.unreadCount > 0)
                             Positioned(
                               right: 8,
                               top: 8,
@@ -168,7 +182,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
                                 ),
                                 child: Center(
                                   child: Text(
-                                    '${carControlProvider.unreadCount}',
+                                    '${notificationsProvider.unreadCount}',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 10,
@@ -245,7 +259,6 @@ class _CarControlScreenState extends State<CarControlScreen> {
                   child: Column(
                     children: [
                       Expanded(
-                        flex: 3,
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             return Container(
@@ -316,6 +329,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
                     ),
                   ),
                   Flexible(
+
                     child: Row(
                       children: [
                         FlashIntensitySlider(),
@@ -323,6 +337,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
                     ),
                   ),
                   Flexible(
+
                     child: Row(
                       children: [
                         CarSpeedSlider(),
@@ -352,6 +367,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
       ],
     );
   }
+
 
   @override
   void dispose() {

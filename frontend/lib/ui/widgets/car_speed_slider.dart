@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/car_control_provider.dart';
+import '../../providers/speed.control.provider.dart';
 import '../../utils/constants.dart';
+
 
 class CarSpeedSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<CarControlProvider>(
-      builder: (context, carControlProvider, child) {
+    return Consumer<SpeedControlProvider>(
+      builder: (context, speedControlProvider, child) {
         return Container(
           width: MediaQuery.of(context).size.width > 800
               ? kWebWidth
@@ -17,13 +18,14 @@ class CarSpeedSlider extends StatelessWidget {
               Icon(Icons.speed, color: Colors.grey),
               Expanded(
                 child: Slider(
-                  value: carControlProvider.carSpeed.toDouble(),
+                  value: speedControlProvider.carSpeed.toDouble(),
                   min: 0,
                   max: 255,
                   divisions: 15,
-                  label: carControlProvider.carSpeed.round().toString(),
+                  label: speedControlProvider.carSpeed.round().toString(),
                   onChanged: (value) {
-                    carControlProvider.setCarSpeed(value.round());
+                    speedControlProvider.setCarSpeed(value.round());
+                    speedControlProvider.notifyCarControlProvider(context);
                   },
                 ),
               ),

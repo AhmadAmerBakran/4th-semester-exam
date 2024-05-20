@@ -1,9 +1,29 @@
-class CarControlCommand {
+class BaseEvent {
   final String eventType;
+
+
+  BaseEvent({required this.eventType});
+
+
+  Map<String, dynamic> toJson() {
+    return {
+      'eventType': eventType,
+    };
+  }
+}
+
+
+class CarControlCommand extends BaseEvent {
   final String topic;
   final String command;
 
-  CarControlCommand({required this.eventType, required this.topic, required this.command});
+
+  CarControlCommand({
+    required String eventType,
+    required this.topic,
+    required this.command,
+  }) : super(eventType: eventType);
+
 
   factory CarControlCommand.fromJson(Map<String, dynamic> json) {
     return CarControlCommand(
@@ -13,20 +33,24 @@ class CarControlCommand {
     );
   }
 
+
+  @override
   Map<String, dynamic> toJson() {
-    return {
-      'eventType': eventType,
-      'Topic': topic,
-      'Command': command,
-    };
+    var map = super.toJson();
+    map['Topic'] = topic;
+    map['Command'] = command;
+    return map;
   }
 }
 
-class SignInEvent {
-  final String eventType;
+
+class SignInEvent extends BaseEvent {
   final String nickName;
 
-  SignInEvent({required this.eventType, required this.nickName});
+
+  SignInEvent({required String eventType, required this.nickName})
+      : super(eventType: eventType);
+
 
   factory SignInEvent.fromJson(Map<String, dynamic> json) {
     return SignInEvent(
@@ -35,64 +59,48 @@ class SignInEvent {
     );
   }
 
+
+  @override
   Map<String, dynamic> toJson() {
-    return {
-      'eventType': eventType,
-      'NickName': nickName,
-    };
+    var map = super.toJson();
+    map['NickName'] = nickName;
+    return map;
   }
 }
 
-class SignOutEvent {
-  final String eventType;
 
-  SignOutEvent({required this.eventType});
+class SignOutEvent extends BaseEvent {
+  SignOutEvent({required String eventType}) : super(eventType: eventType);
+
 
   factory SignOutEvent.fromJson(Map<String, dynamic> json) {
     return SignOutEvent(
       eventType: json['eventType'],
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'eventType': eventType,
-    };
-  }
 }
 
-class ReceiveNotificationsEvent {
-  final String eventType;
 
-  ReceiveNotificationsEvent({required this.eventType});
+class ReceiveNotificationsEvent extends BaseEvent {
+  ReceiveNotificationsEvent({required String eventType})
+      : super(eventType: eventType);
+
 
   factory ReceiveNotificationsEvent.fromJson(Map<String, dynamic> json) {
     return ReceiveNotificationsEvent(
       eventType: json['eventType'],
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'eventType': eventType,
-    };
-  }
 }
 
-class GetCarLogEvent {
-  final String eventType;
 
-  GetCarLogEvent({required this.eventType});
+class GetCarLogEvent extends BaseEvent {
+  GetCarLogEvent({required String eventType}) : super(eventType: eventType);
+
 
   factory GetCarLogEvent.fromJson(Map<String, dynamic> json) {
     return GetCarLogEvent(
       eventType: json['eventType'],
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'eventType': eventType,
-    };
   }
 }
