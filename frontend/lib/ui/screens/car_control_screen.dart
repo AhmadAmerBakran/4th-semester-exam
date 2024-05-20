@@ -28,8 +28,6 @@ class CarControlScreen extends StatefulWidget {
 
 
 class _CarControlScreenState extends State<CarControlScreen> {
-  static const String streamUrl = WEBSOCKET_URL;
-  late WebSocketService _webSocketService;
   ui.Image? _currentImage;
   bool _isStreaming = false;
   bool _notificationsEnabled = false;
@@ -40,7 +38,9 @@ class _CarControlScreenState extends State<CarControlScreen> {
     super.initState();
     print("CarControlScreen initialized");
     _setOrientation();
-    _initWebSocket();
+    final webSocketService = context.read<CarControlProvider>().webSocketService;
+    webSocketService.messageStream.listen(_onMessageReceived);
+    webSocketService.binaryMessageStream.listen(_onBinaryMessageReceived);
   }
 
 
@@ -67,7 +67,6 @@ class _CarControlScreenState extends State<CarControlScreen> {
     }
   }
 
-
   void _onBinaryMessageReceived(Uint8List message) async {
     print("Received binary message of length: ${message.length}");
     final decodedImage = await _decodeImageFromList(message);
@@ -86,15 +85,6 @@ class _CarControlScreenState extends State<CarControlScreen> {
   }
 
 
-  void _initWebSocket() {
-    _webSocketService = WebSocketService(
-      streamUrl,
-      _onMessageReceived,
-      _onBinaryMessageReceived,
-    );
-    //context.read<CarControlProvider>().receiveNotifications();
-  }
-
 
   void _startStream() {
     print("Starting stream...");
@@ -107,7 +97,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
 
   void _stopStream() {
     print("Stopping stream...");
-    _webSocketService.close();
+    context.read<CarControlProvider>().webSocketService.close();
     setState(() {
       _isStreaming = false;
       _currentImage = null;
@@ -372,7 +362,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
   @override
   void dispose() {
     if (_isStreaming) {
-      _webSocketService.close();
+      context.read<CarControlProvider>().webSocketService.close();
     }
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
