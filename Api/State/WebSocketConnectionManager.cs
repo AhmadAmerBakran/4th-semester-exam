@@ -1,5 +1,6 @@
 ﻿using api.State;
 using Core.Exceptions;
+using Core.Interfaces;
 using Fleck;
 
 namespace Api.State;
@@ -9,11 +10,14 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
     private readonly Dictionary<Guid, WebSocketWithMetaData> _connections = new();
     private readonly ILogger<WebSocketConnectionManager> _logger;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly ICarControlService _carControlService;
+
     
-    public WebSocketConnectionManager(ILogger<WebSocketConnectionManager> logger, ILoggerFactory loggerFactory)
+    public WebSocketConnectionManager(ILogger<WebSocketConnectionManager> logger, ILoggerFactory loggerFactory, ICarControlService carControlService)
     {
         _logger = logger;
         _loggerFactory = loggerFactory;
+        _carControlService = carControlService;
 
     }
 
@@ -141,6 +145,22 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
         if (_connections.ContainsKey(id))
         {
             _connections[id].StopDisconnectTimer();
+        }
+    }
+    
+    public async Task ResetCarStateToDefault(Guid connectionId)
+    {
+        try
+        {
+            await _carControlService.CarControl(connectionId, "cam/flash", "off");
+            await _carControlService.CarControl(connectionId, "car/led/control", "off");
+            await _carControlService.CarControl(connectionId, "car/control", "manual mode");
+            await _carControlService.CarControl(connectionId, "cam/control", "stop");
+            _logger.LogInformation($"Car state reset to default for connection: {connectionId}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to reset car state for connection: {connectionId}");
         }
     }
 

@@ -94,7 +94,6 @@ server.Start(socket =>
             else
             {
                 // Handle User connection
-                var connectionPool = connectionManager.GetAllConnections();
                 if (userConnectionId == Guid.Empty || userConnectionId == socket.ConnectionInfo.Id)
                 {
                     userConnectionId = socket.ConnectionInfo.Id;
@@ -121,11 +120,14 @@ server.Start(socket =>
         }
     };
 
-    socket.OnClose = () =>
+    socket.OnClose = async () =>
     {
         try
         {
             logger.LogInformation("Connection closed.");
+
+            await connectionManager.ResetCarStateToDefault(socket.ConnectionInfo.Id);
+            
             connectionManager.RemoveConnection(socket.ConnectionInfo.Id);
             if (!connectionManager.HasMetadata(socket.ConnectionInfo.Id))
             {
