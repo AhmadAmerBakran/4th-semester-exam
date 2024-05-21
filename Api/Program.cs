@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json;
 using Api.Dtos;
 using Api.EventHandlers;
 using Api.Filters;
@@ -102,7 +103,10 @@ server.Start(socket =>
                 }
                 else
                 {
-                    socket.Send("The car is in use right now, please try again later");
+                    socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto()
+                    {
+                        ErrorMessage = "The car is in use right now, please try again later"
+                    }));
                     socket.Close();
                 }
             }
@@ -114,8 +118,10 @@ server.Start(socket =>
         }
         catch (Exception ex)
         {
-            var errorMessage = "An unexpected error occurred while processing the message. Please try again later.";
-            socket.Send(errorMessage);
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto()
+            {
+                ErrorMessage = ex.Message
+            }));
             logger.LogError(ex, $"Exception: {ex.Message}");
         }
     };

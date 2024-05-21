@@ -16,6 +16,8 @@ class WebSocketService {
 
   final StreamController<String> _messageStreamController = StreamController<String>.broadcast();
   final StreamController<Uint8List> _binaryMessageStreamController = StreamController<Uint8List>.broadcast();
+  final StreamController<ErrorResponseEvent> _errorStreamController = StreamController<ErrorResponseEvent>.broadcast();
+
 
   factory WebSocketService() {
     return _singleton;
@@ -25,6 +27,7 @@ class WebSocketService {
 
   Stream<String> get messageStream => _messageStreamController.stream;
   Stream<Uint8List> get binaryMessageStream => _binaryMessageStreamController.stream;
+  Stream<ErrorResponseEvent> get errorStream => _errorStreamController.stream;
 
   void init(String url, Function(String) onMessageReceived, Function(Uint8List) onBinaryMessageReceived) {
     _connect(url, onMessageReceived, onBinaryMessageReceived);
@@ -35,12 +38,7 @@ class WebSocketService {
     _channel.stream.listen(
           (message) {
         if (message is String) {
-          try {
-            onMessageReceived(message);
-            _messageStreamController.add(message);
-          } catch (e) {
-            print("Error parsing message: $e");
-          }
+          _handleStringMessage(message, onMessageReceived);
         } else if (message is List<int>) {
           final binaryMessage = Uint8List.fromList(message);
           _addFrameToBuffer(binaryMessage);
@@ -48,9 +46,33 @@ class WebSocketService {
         }
       },
       onDone: () => _reconnect(url, onMessageReceived, onBinaryMessageReceived),
-      onError: (error) => _reconnect(url, onMessageReceived, onBinaryMessageReceived),
+      onError: (error) {
+        _errorStreamController.add(ErrorResponseEvent(eventType: 'ServerSendsErrorMessageToClient', errorMessage: error.toString()));
+        _reconnect(url, onMessageReceived, onBinaryMessageReceived);
+      },
     );
     _frameTimer = Timer.periodic(Duration(milliseconds: 100), (_) => _displayFrameFromBuffer(onBinaryMessageReceived));
+  }
+
+  void _handleStringMessage(String message, Function(String) onMessageReceived) {
+    try {
+      var jsonMessage = jsonDecode(message);
+      if (jsonMessage is Map<String, dynamic> && jsonMessage['eventType'] == 'ServerSendsErrorMessageToClient') {
+        var errorEvent = ErrorResponseEvent.fromJson(jsonMessage);
+        _handleError(errorEvent);
+      } else {
+        onMessageReceived(message);
+        _messageStreamController.add(message);
+      }
+    } catch (e) {
+      onMessageReceived(message);
+      _messageStreamController.add(message);
+    }
+  }
+
+  void _handleError(ErrorResponseEvent errorEvent) {
+    _errorStreamController.add(errorEvent);
+    print('Error received: ${errorEvent.errorMessage}');
   }
 
   void _reconnect(String url, Function(String) onMessageReceived, Function(Uint8List) onBinaryMessageReceived) {

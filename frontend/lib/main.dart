@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/providers/speed.control.provider.dart';
+import 'package:frontend/ui/widgets/error_listener_widget.dart';
 import 'package:provider/provider.dart';
 import 'providers/car_control_provider.dart';
 import 'providers/user_provider.dart';
@@ -48,16 +49,18 @@ class MyApp extends StatelessWidget {
           create: (context) => CarControlProvider(webSocketService: webSocketService),
         ),
       ],
-      child: MaterialApp(
-        title: 'Car Control App',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
+      child: ErrorListenerWidget(
+        child: MaterialApp(
+          title: 'Car Control App',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          initialRoute: '/',
+          routes: {
+            '/': (context) => LoginScreen(),
+            '/carControl': (context) => CarControlScreen(),
+          },
         ),
-        initialRoute: '/',
-        routes: {
-          '/': (context) => LoginScreen(),
-          '/carControl': (context) => CarControlScreen(),
-        },
       ),
     );
   }
