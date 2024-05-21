@@ -50,7 +50,9 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 var userConnectionId = Guid.Empty;
 var espConnectionId = Guid.Empty;
 
-var server = new WebSocketServer("ws://0.0.0.0:8181");
+builder.WebHost.UseUrls("http://*:9999");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
+var server = new WebSocketServer("ws://0.0.0.0:" + port);
 
 ServiceLocator.ServiceProvider = app.Services;
 
