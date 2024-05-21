@@ -39,4 +39,8 @@ class CarControlProvider with ChangeNotifier {
   void reconnect(String url, Function(String) onMessageReceived, Function(Uint8List) onBinaryMessageReceived) {
     webSocketService.init(url, onMessageReceived, onBinaryMessageReceived);
   }
+
+  void sendAICommand(String command) {
+    webSocketService.sendAICommand(command);
+  }
 }

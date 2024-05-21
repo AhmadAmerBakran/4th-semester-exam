@@ -11,28 +11,48 @@ using Api.State;
 using Core.Exceptions;
 using Infrastructure.Repositories;
 using lib;
+using Service.AiService;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Retrieve configuration values
+var textAnalyticsEndpoint = Environment.GetEnvironmentVariable("TextAnalyticsEndpoint");
+var textAnalyticsApiKey = Environment.GetEnvironmentVariable("TextAnalyticsApiKey");
+var textToSpeechSubscriptionKey = Environment.GetEnvironmentVariable("TextToSpeech:SubscriptionKey");
+var serviceRegion = "northeurope"; // Assuming serviceRegion is constant
+
+// Ensure these values are not null or empty
+if (string.IsNullOrEmpty(textAnalyticsEndpoint)) throw new InvalidOperationException("TextAnalyticsEndpoint is not set");
+if (string.IsNullOrEmpty(textAnalyticsApiKey)) throw new InvalidOperationException("TextAnalyticsApiKey is not set");
+if (string.IsNullOrEmpty(textToSpeechSubscriptionKey)) throw new InvalidOperationException("TextToSpeech:SubscriptionKey is not set");
+
+// Add services to the container
+builder.Services.AddSingleton(serviceProvider => new LanguageDetectionService(textAnalyticsEndpoint, textAnalyticsApiKey));
+builder.Services.AddSingleton(serviceProvider =>
+{
+    var languageDetectionService = serviceProvider.GetRequiredService<LanguageDetectionService>();
+    return new TextToSpeechService(textToSpeechSubscriptionKey, serviceRegion, languageDetectionService);
+});
+builder.Services.AddSingleton<TranslationService>();
+builder.Services.AddSingleton<IAIService, AIService>();
 builder.Services.AddSingleton<IMQTTClientManager, MQTTClientManager>();
 builder.Services.AddNpgsqlDataSource(Utilities.ProperlyFormattedConnectionString, dataSourceBuilder => dataSourceBuilder.EnableParameterLogging());
 builder.Services.AddSingleton<ICarControlService, CarControlService>();
 builder.Services.AddSingleton<IWebSocketConnectionManager, WebSocketConnectionManager>();
 builder.Services.AddSingleton<ICarLogRepository, CarLogRepository>();
 
-// Register filters with transient lifetime to avoid conflicts.
+// Register filters with transient lifetime to avoid conflicts
 builder.Services.AddTransient<ValidateDataAnnotations>(); 
 builder.Services.AddTransient<RequireAuthenticationAttribute>();
 
-// Register event handlers.
+// Register event handlers
 builder.Services.AddSingleton<BaseEventHandler<ClientWantsToControlCarDto>, ClientWantsToControlCar>();
 builder.Services.AddSingleton<BaseEventHandler<ClientWantsToSignInDto>, ClientWantsToSignIn>();
 builder.Services.AddSingleton<BaseEventHandler<ClientWantsToSignOutDto>, ClientWantsToSignOut>();
 builder.Services.AddSingleton<BaseEventHandler<ClientWantsToGetCarLogDto>, ClientWantsToGetCarLog>();
 builder.Services.AddSingleton<BaseEventHandler<ClientWantsToReceiveNotificationsDto>, ClientWantsToReceiveNotifications>();
 
-// Configure logging.
+// Configure logging
 builder.Services.AddLogging(config =>
 {
     config.AddConsole();
@@ -45,6 +65,7 @@ var app = builder.Build();
 
 var connectionManager = app.Services.GetRequiredService<IWebSocketConnectionManager>();
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
 
 var userConnectionId = Guid.Empty;
 var espConnectionId = Guid.Empty;
@@ -91,6 +112,12 @@ server.Start(socket =>
                 espConnectionId = socket.ConnectionInfo.Id;
                 logger.LogInformation($"ESP32-CAM connected with ID: {espConnectionId}");
             }
+            else if (message.StartsWith("AI:"))
+            {
+                // Handle AI message
+                var aiMessage = message.Substring(3); // Remove "AI:" prefix
+                await connectionManager.HandleAIMessage(socket, aiMessage);
+            }
             else
             {
                 // Handle User connection
@@ -119,6 +146,7 @@ server.Start(socket =>
             logger.LogError(ex, $"Exception: {ex.Message}");
         }
     };
+
 
     socket.OnClose = async () =>
     {

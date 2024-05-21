@@ -2,6 +2,7 @@
 using Core.Exceptions;
 using Core.Interfaces;
 using Fleck;
+using Service.AiService;
 
 namespace Api.State;
 
@@ -11,12 +12,15 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
     private readonly ILogger<WebSocketConnectionManager> _logger;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ICarControlService _carControlService;
+    private readonly IAIService _aiService;
+
 
     
-    public WebSocketConnectionManager(ILogger<WebSocketConnectionManager> logger, ILoggerFactory loggerFactory, ICarControlService carControlService)
+    public WebSocketConnectionManager(ILogger<WebSocketConnectionManager> logger, ILoggerFactory loggerFactory, ICarControlService carControlService, IAIService aiService)
     {
         _logger = logger;
         _loggerFactory = loggerFactory;
+        _aiService = aiService;
         _carControlService = carControlService;
 
     }
@@ -161,6 +165,30 @@ public class WebSocketConnectionManager : IWebSocketConnectionManager
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Failed to reset car state for connection: {connectionId}");
+        }
+    }
+    
+    public async Task HandleAIMessage(IWebSocketConnection socket, string message)
+    {
+        try
+        {
+            var processedCommand = await _aiService.ProcessCommandAsync(message);
+            await _carControlService.CarControl(socket.ConnectionInfo.Id, "cam/flash", processedCommand);
+
+            var audioData = await _aiService.ConvertTextToSpeechAsync(processedCommand);
+            var base64Audio = Convert.ToBase64String(audioData);
+
+            var successMessage = $"AI processed message '{message}' to '{processedCommand}' and sent to car control.";
+            _logger.LogInformation(successMessage);
+
+            await socket.Send(successMessage);
+            await socket.Send(base64Audio); // Send the audio data in base64 format
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling AI message.");
+            var errorMessage = "An unexpected error occurred while processing the AI message. Please try again later.";
+            await socket.Send(errorMessage);
         }
     }
 

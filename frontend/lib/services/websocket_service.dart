@@ -103,4 +103,15 @@ class WebSocketService {
     _frameTimer.cancel();
     //_channel.sink.close();
   }
+
+  void sendAICommand(String command) {
+    final event = CarControlCommand(
+      eventType: 'ClientWantsToControlCar', // Ensure this matches the backend event type
+      topic: 'car/control', // This is the MQTT topic for car control
+      command: command, // This will be the command processed by the backend AI service
+    );
+    sendMessage(event);
+  }
+
+
 }

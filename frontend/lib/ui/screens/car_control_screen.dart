@@ -9,7 +9,6 @@ import 'package:provider/provider.dart';
 import '../../providers/notifications_provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../providers/user_provider.dart';
-import '../../services/websocket_service.dart';
 import '../widgets/Aanimated_background.dart';
 import '../widgets/animated_app_bar.dart';
 import '../widgets/car_speed_slider.dart';
@@ -18,7 +17,7 @@ import '../widgets/notification_list_widget.dart';
 import '../widgets/stream_container_widget.dart';
 import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
-import '../../utils/constants.dart';
+import '../widgets/voice_control_widget.dart';
 
 
 class CarControlScreen extends StatefulWidget {
@@ -210,6 +209,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
                   },
                 ),
               ),
+              VoiceControlWidget(),
             ],
           ),
         ],
