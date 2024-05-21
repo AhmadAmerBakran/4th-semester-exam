@@ -1,4 +1,4 @@
-const String WEBSOCKET_URL = 'ws://192.168.0.165:8181';
+const String WEBSOCKET_URL = 'wss://car-control-a2bcf49c2456.herokuapp.com';
 const double kMobileWidth = 280.0;
 const double kMobileHeight = 280.0;
 const double kWebWidth = 400.0;
