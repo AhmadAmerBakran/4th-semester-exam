@@ -1,10 +1,11 @@
 ﻿namespace MQTTClient;
 
-public class MqttConfig
+public static class MQTTConfig
 {
-    public string Server { get; set; }
-    public int Port { get; set; }
-    public string ClientId { get; set; }
-    public string Username { get; set; }
-    public string Password { get; set; }
+    public static string Server => "mqtt.flespi.io";
+    public static int Port => 8883;
+    public static string ClientId => "FullStackIoTAppClient";
+    public static string Username => Environment.GetEnvironmentVariable("flespi_client");
+    public static string Password => "";
+    
 }
