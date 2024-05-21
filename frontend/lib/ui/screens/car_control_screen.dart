@@ -1,25 +1,23 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../models/events.dart';
 import '../../providers/notifications_provider.dart';
 import '../../providers/car_control_provider.dart';
 import '../../providers/user_provider.dart';
-import '../../services/websocket_service.dart';
 import '../widgets/Aanimated_background.dart';
 import '../widgets/animated_app_bar.dart';
 import '../widgets/car_speed_slider.dart';
+import '../widgets/error_listener_widget.dart';
 import '../widgets/flash_intensity_slider.dart';
 import '../widgets/notification_list_widget.dart';
 import '../widgets/stream_container_widget.dart';
 import '../widgets/control_buttons.dart';
 import '../widgets/gamepad_widget.dart';
-import '../../utils/constants.dart';
-
 
 class CarControlScreen extends StatefulWidget {
   @override
@@ -31,6 +29,7 @@ class _CarControlScreenState extends State<CarControlScreen> {
   ui.Image? _currentImage;
   bool _isStreaming = false;
   bool _notificationsEnabled = false;
+  StreamSubscription<ErrorResponseEvent>? _errorSubscription;
 
 
   @override
@@ -41,8 +40,21 @@ class _CarControlScreenState extends State<CarControlScreen> {
     final webSocketService = context.read<CarControlProvider>().webSocketService;
     webSocketService.messageStream.listen(_onMessageReceived);
     webSocketService.binaryMessageStream.listen(_onBinaryMessageReceived);
+    _errorSubscription = context.read<CarControlProvider>().webSocketService.errorStream.listen((errorEvent) {
+      _showErrorSnackbar(errorEvent.errorMessage);
+    });
   }
 
+  void _showErrorSnackbar(String? errorMessage) {
+    if (errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   void _toggleNotifications(bool value) {
     setState(() {
@@ -109,110 +121,112 @@ class _CarControlScreenState extends State<CarControlScreen> {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
-    return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: AnimatedBackground(),
-          ),
-          Column(
-            children: [
-              AnimatedAppBar(
-                title: userProvider.user?.nickname ?? 'Car Control',
-                leading: Builder(
-                  builder: (context) => PopupMenuButton(
-                    icon: Icon(Icons.settings),
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return ErrorListenerWidget(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: AnimatedBackground(),
+            ),
+            Column(
+              children: [
+                AnimatedAppBar(
+                  title: userProvider.user?.nickname ?? 'Car Control',
+                  leading: Builder(
+                    builder: (context) => PopupMenuButton(
+                      icon: Icon(Icons.settings),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("Enable Notifications"),
+                              Switch(
+                                value: _notificationsEnabled,
+                                onChanged: (value) {
+                                  _toggleNotifications(value);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    Consumer<NotificationsProvider>(
+                      builder: (context, notificationsProvider, child) {
+                        return Stack(
                           children: [
-                            Text("Enable Notifications"),
-                            Switch(
-                              value: _notificationsEnabled,
-                              onChanged: (value) {
-                                _toggleNotifications(value);
-                                Navigator.pop(context);
+                            IconButton(
+                              icon: Icon(Icons.notifications),
+                              onPressed: () {
+                                notificationsProvider.clearUnreadCount();
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (context) => NotificationList(),
+                                );
                               },
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                actions: [
-                  Consumer<NotificationsProvider>(
-                    builder: (context, notificationsProvider, child) {
-                      return Stack(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.notifications),
-                            onPressed: () {
-                              notificationsProvider.clearUnreadCount();
-                              showModalBottomSheet(
-                                context: context,
-                                builder: (context) => NotificationList(),
-                              );
-                            },
-                          ),
-                          if (notificationsProvider.unreadCount > 0)
-                            Positioned(
-                              right: 8,
-                              top: 8,
-                              child: Container(
-                                padding: EdgeInsets.all(2),
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                constraints: BoxConstraints(
-                                  minWidth: 16,
-                                  minHeight: 16,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    '${notificationsProvider.unreadCount}',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
+                            if (notificationsProvider.unreadCount > 0)
+                              Positioned(
+                                right: 8,
+                                top: 8,
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  constraints: BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${notificationsProvider.unreadCount}',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                      ),
+                                      textAlign: TextAlign.center,
                                     ),
-                                    textAlign: TextAlign.center,
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.history),
-                    onPressed: () {
-                      context.read<CarControlProvider>().getCarLog();
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.exit_to_app),
-                    onPressed: () {
-                      context.read<CarControlProvider>().signOut();
-                      Navigator.pushReplacementNamed(context, '/');
-                    },
-                  ),
-                ],
-              ),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return constraints.maxWidth > 800
-                        ? _buildWebLayout()
-                        : _buildMobileLayout();
-                  },
+                          ],
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.history),
+                      onPressed: () {
+                        context.read<CarControlProvider>().getCarLog();
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.exit_to_app),
+                      onPressed: () {
+                        context.read<CarControlProvider>().signOut();
+                        Navigator.pushReplacementNamed(context, '/');
+                      },
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-        ],
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return constraints.maxWidth > 800
+                          ? _buildWebLayout()
+                          : _buildMobileLayout();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

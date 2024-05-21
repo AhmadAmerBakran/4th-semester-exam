@@ -92,7 +92,8 @@ public class CarLogRepository : ICarLogRepository
                 if (!userExists)
                 {
                     _logger.LogInformation("User does not exist. Adding user with ID: {UserId}", userId);
-                    return await connection.QueryFirstAsync<User>(insertQuery, new { UserId = userId, NickName = nickname });
+                    return await connection.QueryFirstAsync<User>(insertQuery,
+                        new { UserId = userId, NickName = nickname });
                 }
                 else
                 {

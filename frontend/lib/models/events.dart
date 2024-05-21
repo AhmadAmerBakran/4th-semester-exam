@@ -104,3 +104,26 @@ class GetCarLogEvent extends BaseEvent {
     );
   }
 }
+
+class ErrorResponseEvent extends BaseEvent {
+  final String? errorMessage;
+
+  ErrorResponseEvent({
+    required String eventType,
+    this.errorMessage,
+  }) : super(eventType: eventType);
+
+  factory ErrorResponseEvent.fromJson(Map<String, dynamic> json) {
+    return ErrorResponseEvent(
+      eventType: json['eventType'],
+      errorMessage: json['ErrorMessage'],
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var map = super.toJson();
+    map['ErrorMessage'] = errorMessage;
+    return map;
+  }
+}

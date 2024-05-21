@@ -9,34 +9,79 @@ class CarControlProvider with ChangeNotifier {
   final WebSocketService webSocketService;
 
 
-  CarControlProvider({required this.webSocketService});
+  String? _errorMessage;
+
+  CarControlProvider({required this.webSocketService}) {
+    webSocketService.errorStream.listen((errorEvent) {
+      _errorMessage = errorEvent.errorMessage;
+      notifyListeners();
+    });
+  }
+
+  String? get errorMessage => _errorMessage;
 
 
   void sendCommand(String topic, String command) {
-    webSocketService.sendCarControlCommand(topic, command);
+    try {
+      webSocketService.sendCarControlCommand(topic, command);
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
   }
 
 
-  void signIn(User user) {
-    webSocketService.sendSignIn(user.nickname);
-  }
+    void signIn(User user) {
+      try {
+        webSocketService.sendSignIn(user.nickname);
+      } catch (e) {
+        _errorMessage = e.toString();
+        notifyListeners();
+      }
+    }
 
 
-  void signOut() {
-    webSocketService.sendSignOut();
-  }
+    void signOut() {
+      try {
+        webSocketService.sendSignOut();
+      } catch (e) {
+        _errorMessage = e.toString();
+        notifyListeners();
+      }
+    }
 
 
-  void receiveNotifications() {
-    webSocketService.sendReceiveNotifications();
-  }
+    void receiveNotifications() {
+      try {
+        webSocketService.sendReceiveNotifications();
+      } catch (e) {
+        _errorMessage = e.toString();
+        notifyListeners();
+      }
+    }
 
 
-  void getCarLog() {
-    webSocketService.sendGetCarLog();
-  }
+    void getCarLog() {
+      try {
+        webSocketService.sendGetCarLog();
+      } catch (e) {
+        _errorMessage = e.toString();
+        notifyListeners();
+      }
+    }
 
-  void reconnect(String url, Function(String) onMessageReceived, Function(Uint8List) onBinaryMessageReceived) {
-    webSocketService.init(url, onMessageReceived, onBinaryMessageReceived);
+    void reconnect(String url, Function(String) onMessageReceived,
+        Function(Uint8List) onBinaryMessageReceived) {
+      try {
+        webSocketService.init(url, onMessageReceived, onBinaryMessageReceived);
+      } catch (e) {
+        _errorMessage = e.toString();
+        notifyListeners();
+      }
+    }
+
+    void clearError() {
+      _errorMessage = null;
+      notifyListeners();
   }
 }
