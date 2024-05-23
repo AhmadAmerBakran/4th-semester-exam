@@ -100,7 +100,7 @@ namespace MQTTClient
             };
 
             var mqttClientOptions = new MqttClientOptionsBuilder()
-                .WithClientId(MQTTConfig.ClientId)
+                .WithClientId(Guid.NewGuid().ToString()) 
                 .WithTcpServer(MQTTConfig.Server, MQTTConfig.Port)
                 .WithCredentials(MQTTConfig.Username, MQTTConfig.Password)
                 .WithCleanSession()
@@ -137,7 +137,7 @@ namespace MQTTClient
                 throw new AppException("An unexpected error occurred while connecting to the MQTT broker. Please try again later.");
             }
         }
-        
+
         private async Task OnDisconnectedAsync(MqttClientDisconnectedEventArgs e)
         {
             _logger.LogWarning("Disconnected from MQTT Broker. Reason: {Reason}", e.Reason);
