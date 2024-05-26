@@ -58,8 +58,26 @@ ServiceLocator.ServiceProvider = app.Services;
 
 server.Start(socket =>
 {
+    var keepAliveInterval = TimeSpan.FromSeconds(30);
+    var keepAliveTimer = new System.Timers.Timer(keepAliveInterval.TotalMilliseconds)
+    { 
+        AutoReset = true, 
+        Enabled = true 
+    }; 
+    keepAliveTimer.Elapsed += (sender, e) => { 
+        try
+        { 
+            socket.Send("ping"); 
+        }
+        catch (Exception ex) 
+        {
+            Console.WriteLine("Exception in keep-alive timer: " + ex.Message);
+            keepAliveTimer.Stop(); 
+        } 
+    };
     socket.OnOpen = () =>
     {
+        
         try
         {
             var connectionPool = connectionManager.GetAllConnections();
@@ -133,6 +151,7 @@ server.Start(socket =>
         try
         {
             logger.LogInformation("Connection closed.");
+            keepAliveTimer.Stop();
 
             await connectionManager.ResetCarStateToDefault(socket.ConnectionInfo.Id);
             
