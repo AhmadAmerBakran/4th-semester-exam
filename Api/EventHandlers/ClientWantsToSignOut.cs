@@ -30,7 +30,7 @@ public class ClientWantsToSignOut : BaseEventHandler<ClientWantsToSignOutDto>
             // Reset car state to default
             _webSocketConnectionManager.ResetConnection(connectionId);
 
-            _webSocketConnectionManager.ResetConnection(connectionId); // Reset metadata
+            _webSocketConnectionManager.ResetCarStateToDefault(connectionId); // Reset metadata
             _webSocketConnectionManager.StartDisconnectTimer(connectionId, () =>
             {
                 _webSocketConnectionManager.RemoveConnection(connectionId);
