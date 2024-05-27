@@ -48,7 +48,6 @@ var connectionManager = app.Services.GetRequiredService<IWebSocketConnectionMana
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 var userConnectionId = Guid.Empty;
-var espConnectionId = Guid.Empty;
 
 builder.WebHost.UseUrls("http://*:9999");
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8181";
@@ -86,13 +85,20 @@ server.Start(socket =>
         }
         catch (AppException ex)
         {
-            socket.Send(ex.Message);
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto()
+            {
+                ErrorMessage = ex.Message
+            }));
+            
             logger.LogError(ex, $"AppException: {ex.Message}");
         }
         catch (Exception ex)
         {
             var errorMessage = "An unexpected error occurred during the connection process. Please try again later.";
-            socket.Send(errorMessage);
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto()
+            {
+                ErrorMessage = errorMessage
+            }));
             logger.LogError(ex, $"Exception: {ex.Message}");
         }
     };
@@ -101,20 +107,6 @@ server.Start(socket =>
     {
         try
         {
-            if (message == "ESP32-CAM")
-            {
-                // Handle ESP32-CAM connection
-                if (espConnectionId != Guid.Empty && espConnectionId != socket.ConnectionInfo.Id)
-                {
-                    var existingSocket = connectionManager.GetConnection(espConnectionId)?.Connection;
-                    existingSocket?.Close();
-                }
-                espConnectionId = socket.ConnectionInfo.Id;
-                logger.LogInformation($"ESP32-CAM connected with ID: {espConnectionId}");
-            }
-            else
-            {
-                // Handle User connection
                 if (userConnectionId == Guid.Empty || userConnectionId == socket.ConnectionInfo.Id)
                 {
                     userConnectionId = socket.ConnectionInfo.Id;
@@ -129,18 +121,20 @@ server.Start(socket =>
                     }));
                     socket.Close();
                 }
-            }
         }
         catch (AppException ex)
         {
-            socket.Send(ex.Message);
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto()
+            {
+                ErrorMessage = ex.Message
+            }));
             logger.LogError(ex, $"AppException: {ex.Message}");
         }
         catch (Exception ex)
         {
             socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto()
             {
-                ErrorMessage = ex.Message
+                ErrorMessage = "An error occured, please try again later."
             }));
             logger.LogError(ex, $"Exception: {ex.Message}");
         }
@@ -169,20 +163,23 @@ server.Start(socket =>
             {
                 userConnectionId = Guid.Empty;
             }
-            if (espConnectionId == socket.ConnectionInfo.Id)
-            {
-                espConnectionId = Guid.Empty;
-            }
+            
         }
         catch (AppException ex)
         {
-            socket.Send(ex.Message);
+            await socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto()
+            {
+                ErrorMessage = ex.Message
+            }));
             logger.LogError(ex, $"AppException: {ex.Message}");
         }
         catch (Exception ex)
         {
             var errorMessage = "An unexpected error occurred while closing the connection. Please try again later.";
-            socket.Send(errorMessage);
+            await socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto()
+            {
+                ErrorMessage = errorMessage
+            }));
             logger.LogError(ex, $"Exception: {ex.Message}");
         }
     };
@@ -191,22 +188,32 @@ server.Start(socket =>
     {
         try
         {
-            var connections = connectionManager.GetAllConnections();
-            foreach (var conn in connections)
+            var userConnection = connectionManager.GetConnection(userConnectionId);
+            if (userConnection.Username != null)
             {
-                conn.Connection.Send(data);
-                logger.LogInformation($"Sent frame with length: {data.Length} to connection");
+                userConnection.Connection.Send(data);
+                logger.LogInformation($"Sent frame with length: {data.Length} to user connection {userConnectionId}");
+            }
+            else
+            {
+                logger.LogWarning($"User connection with ID {userConnectionId} not found.");
             }
         }
         catch (AppException ex)
         {
-            socket.Send(ex.Message);
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto()
+            {
+                ErrorMessage = ex.Message
+            }));
             logger.LogError(ex, $"AppException: {ex.Message}");
         }
         catch (Exception ex)
         {
             var errorMessage = "An unexpected error occurred while processing binary data. Please try again later.";
-            socket.Send(errorMessage);
+            socket.Send(JsonSerializer.Serialize(new ServerSendsErrorMessageToClientDto()
+            {
+                ErrorMessage = errorMessage
+            }));
             logger.LogError(ex, $"Exception: {ex.Message}");
         }
     };
